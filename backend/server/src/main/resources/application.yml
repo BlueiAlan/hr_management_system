@@ -1,0 +1,73 @@
+server:
+  port: 8080
+
+spring:
+  profiles:
+    active: dev
+  main:
+    allow-circular-references: true
+  datasource:
+    druid:
+      driver-class-name: ${hr.datasource.driver-class-name}
+      url: jdbc:mysql://${hr.datasource.host}:${hr.datasource.port}/${hr.datasource.database}?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
+      username: ${hr.datasource.username}
+      password: ${hr.datasource.password}
+  redis:
+    host: ${hr.redis.host}
+    port: ${hr.redis.port}
+    password: ${hr.redis.password}
+    database: ${hr.redis.database}
+
+mybatis:
+  #mapper配置文件
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.damien.entity
+  configuration:
+    #开启驼峰命名
+    map-underscore-to-camel-case: true
+mybatis-plus:
+  global-config:
+    db-config:
+      # 全局主键类型，雪花算法类型
+      id-type: AUTO
+      # 全局更新策略，默认not_null
+      update-strategy: not_null
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+
+
+logging:
+  level:
+    com:
+      damien:
+        mapper: debug
+        service: info
+        controller: info
+  pattern:
+    dateformat: yyyy-MM-dd HH:mm:ss.SSS
+#  file:
+#    path: logs/
+
+hr:
+  jwt:
+    # 设置jwt签名加密时使用的秘钥
+    admin-secret-key: damien
+    # 设置jwt过期时间 单位毫秒 2小时
+    # admin-ttl: 7200000
+    admin-ttl: 21600000 # 6小时测试使用
+    # 设置前端传递过来的令牌名称
+    admin-token-name: token
+    # 设置jwt签名加密时使用的秘钥
+    user-secret-key: damien-key
+    # 设置jwt过期时间 单位毫秒 12小时
+    user-ttl: 21600000
+    # 设置前端传递过来的令牌名称
+    user-token-name: authentication
+  minio:
+    endpoint: ${hr.minio.endpoint}
+    access-key: ${hr.minio.access-key}
+    secret-key: ${hr.minio.secret-key}
+    bucket-name: ${hr.minio.bucket-name}
+
+

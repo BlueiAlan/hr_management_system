@@ -18,3 +18,6 @@ public class SalaryIssueDetailVO implements Serializable {
     private BigDecimal finalAmount;
 }
 
+
+
+

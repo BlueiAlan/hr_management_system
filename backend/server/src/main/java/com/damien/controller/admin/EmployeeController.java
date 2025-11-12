@@ -23,6 +23,7 @@ import java.util.Map;
 
 /**
  * 员工管理
+ * 
  * @module 管理端
  */
 @RestController
@@ -39,8 +40,8 @@ public class EmployeeController {
     /**
      * 登录
      *
-     * @param employeeLoginDTO  员工登录DTO
-     * @return  员工登录VO
+     * @param employeeLoginDTO 员工登录DTO
+     * @return 员工登录VO
      */
     @ApiOperation(value = "员工登录")
     @PostMapping("/login")
@@ -49,7 +50,7 @@ public class EmployeeController {
 
         Employee employee = employeeService.login(employeeLoginDTO);
 
-        //登录成功后，生成jwt令牌
+        // 登录成功后，生成jwt令牌
         Map<String, Object> claims = new HashMap<>();
         claims.put(JwtClaimsConstant.EMP_ID, employee.getId());
         String token = JwtUtil.createJWT(
@@ -80,6 +81,7 @@ public class EmployeeController {
 
     /**
      * 新增员工
+     * 
      * @param employeeDTO
      * @return
      */
@@ -93,6 +95,7 @@ public class EmployeeController {
 
     /**
      * 员工分页查询
+     * 
      * @param employeeQuery
      * @return
      */
@@ -106,6 +109,7 @@ public class EmployeeController {
 
     /**
      * 根据id查询员工
+     * 
      * @param id
      * @return
      */
@@ -118,6 +122,7 @@ public class EmployeeController {
 
     /**
      * 编辑员工信息
+     * 
      * @param employeeDTO
      * @return
      */
@@ -131,6 +136,7 @@ public class EmployeeController {
 
     /**
      * 删除员工
+     * 
      * @param id
      * @return
      */
@@ -144,6 +150,7 @@ public class EmployeeController {
 
     /**
      * 复核员工
+     * 
      * @param id
      * @param reviewOpinion
      * @return
@@ -154,6 +161,50 @@ public class EmployeeController {
         log.info("复核员工，id：{}，复核意见：{}", id, reviewOpinion);
         employeeService.review(id, reviewOpinion);
         return Result.success("复核成功");
+    }
+
+    /**
+     * 复核员工（支持更新信息）
+     * 
+     * @param employeeDTO   员工信息
+     * @param reviewOpinion 复核意见
+     * @param isApproved    是否通过复核
+     * @return
+     */
+    @PostMapping("/review-with-update")
+    @ApiOperation(value = "复核员工（支持更新信息）")
+    public Result<String> reviewWithUpdate(@RequestBody EmployeeDTO employeeDTO,
+            @RequestParam(required = false) String isApprovedStr) {
+        // 处理isApproved参数，可能是字符串"true"/"false"或boolean
+        Boolean isApproved = null;
+        if (isApprovedStr != null && !isApprovedStr.isEmpty()) {
+            if ("true".equalsIgnoreCase(isApprovedStr) || "1".equals(isApprovedStr)) {
+                isApproved = true;
+            } else if ("false".equalsIgnoreCase(isApprovedStr) || "0".equals(isApprovedStr)) {
+                isApproved = false;
+            }
+        }
+        log.info("复核员工并更新信息，id：{}，是否通过：{}", employeeDTO.getId(), isApproved);
+        // 如果isApproved为null，默认为false（不通过）
+        if (isApproved == null) {
+            isApproved = false;
+        }
+        employeeService.reviewWithUpdate(employeeDTO, null, isApproved);
+        return Result.success("复核成功");
+    }
+
+    /**
+     * 恢复已删除的员工档案
+     * 
+     * @param id
+     * @return
+     */
+    @PostMapping("/restore/{id}")
+    @ApiOperation(value = "恢复已删除的员工档案")
+    public Result<String> restore(@PathVariable Integer id) {
+        log.info("恢复员工档案，id：{}", id);
+        employeeService.restore(id);
+        return Result.success("恢复成功");
     }
 
 }

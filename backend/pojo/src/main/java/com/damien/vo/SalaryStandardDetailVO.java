@@ -14,3 +14,6 @@ public class SalaryStandardDetailVO implements Serializable {
     private BigDecimal amount;
 }
 
+
+
+

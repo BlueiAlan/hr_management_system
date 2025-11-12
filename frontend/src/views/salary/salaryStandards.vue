@@ -6,8 +6,18 @@
         <el-input v-model="standardNumber" placeholder="请输入标准编号" style="width: 15%"></el-input>
         <label style="margin-left: 20px; margin-right: 5px">标准名称：</label>
         <el-input v-model="standardName" placeholder="请输入标准名称" style="width: 15%"></el-input>
-        <el-button type="primary" style="margin-left: 25px; color: #FFFFFF" @click="pageQuery()" class="button1">查询</el-button>
-        <el-button type="primary" style="float: right; color:#FFFFFF;" class="button1" @click="handleAdd()">+添加薪酬标准</el-button>
+        <label style="margin-left: 20px; margin-right: 5px">登记时间：</label>
+        <el-date-picker
+          v-model="dateRange"
+          type="daterange"
+          range-separator="至"
+          start-placeholder="开始日期"
+          end-placeholder="结束日期"
+          value-format="yyyy-MM-dd"
+          style="width: 240px">
+        </el-date-picker>
+        <el-button type="primary" size="small" style="margin-left: 25px; color: #FFFFFF" @click="pageQuery()" class="button1">查询</el-button>
+        <el-button type="primary" size="small" style="float: right; color:#FFFFFF;" class="button1" @click="handleAdd()">+添加薪酬标准</el-button>
       </div>
 
       <div class="table-container">
@@ -62,17 +72,17 @@
           <el-table-column label="操作" width="280">
             <template v-slot="scope">
               <el-button
-                size="primary" plain
+                size="small" plain
                 class="action-button"
                 @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
               <el-button
                 v-if="scope.row.status === '待复核'"
-                size="primary" plain
+                size="small" plain
                 type="success"
                 class="action-button"
                 @click="handleReview(scope.$index, scope.row)">复核</el-button>
               <el-button
-                size="primary" plain
+                size="small" plain
                 class="action-button"
                 @click="handleDetail(scope.$index, scope.row)">详情</el-button>
             </template>
@@ -102,6 +112,7 @@ export default {
     return {
       standardNumber: "",
       standardName: "",
+      dateRange: null,
       pageNum: 1,
       pageSize: 10,
       total: 0,
@@ -113,11 +124,15 @@ export default {
   },
   methods: {
     pageQuery() {
-      const params = {
+      const params: any = {
         standardNumber: this.standardNumber,
         standardName: this.standardName,
         pageNum: this.pageNum,
         pageSize: this.pageSize
+      }
+      if (this.dateRange && this.dateRange.length === 2) {
+        params.startDate = this.dateRange[0]
+        params.endDate = this.dateRange[1]
       }
       getSalaryStandardList(params).then(res => {
         if (res.data.code == 200) {
@@ -178,4 +193,6 @@ export default {
   border-color: #409EFF !important;
 }
 </style>
+
+
 

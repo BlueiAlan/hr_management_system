@@ -11,3 +11,6 @@ public class SalaryIssueQuery extends PageQuery {
     private String status;
 }
 
+
+
+

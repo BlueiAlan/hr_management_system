@@ -10,3 +10,5 @@
 **/target/
 **/test/
 /frontend/node_modules
+/commom/**
+/file/**

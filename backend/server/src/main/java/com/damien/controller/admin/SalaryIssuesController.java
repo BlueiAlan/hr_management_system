@@ -91,8 +91,12 @@ public class SalaryIssuesController {
     @ApiOperation(value = "复核薪酬发放")
     public Result<String> review(@PathVariable Integer id,
                                  @RequestParam(required = false) String reviewOpinion,
-                                 @RequestParam Boolean isApproved) {
+                                 @RequestParam(required = false) Boolean isApproved) {
         log.info("复核薪酬发放，id：{}，复核意见：{}，是否通过：{}", id, reviewOpinion, isApproved);
+        // 如果isApproved为null，默认为false（不通过）
+        if (isApproved == null) {
+            isApproved = false;
+        }
         salaryIssuesService.review(id, reviewOpinion, isApproved);
         return Result.success("复核成功");
     }

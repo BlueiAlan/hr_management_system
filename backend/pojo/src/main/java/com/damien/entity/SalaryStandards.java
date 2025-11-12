@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.io.Serializable;
 import io.swagger.annotations.ApiModel;
@@ -45,7 +46,7 @@ public class SalaryStandards implements Serializable {
     private String registrar;
 
     @ApiModelProperty(value = "登记时间")
-    private LocalDateTime registerTime;
+    private LocalDate registerTime;
 
     @ApiModelProperty(value = "薪酬总额")
     private BigDecimal totalAmount;

@@ -7,14 +7,15 @@
           员工姓名：
         </label>
         <el-input placeholder="请输入员工姓名" v-model="username" style="width: 15%;" />
-        <el-button type="primary" style="margin-left: 20px" @click="pageQuery">查询</el-button>
-        <el-button type="primary" style="float: right" @click="handleAddEmp">+添加员工</el-button>
+        <el-button type="primary" style="margin-left: 20px;color: #FFFFFF" @click="pageQuery" class="button1" >查询</el-button>
+        <el-button type="primary" style="float: right; color:#FFFFFF;" class="button1" @click="handleAddEmp">+添加员工</el-button>
       </div>
 
         <el-table
         :cell-style="{'text-align':'center'}"
         :header-cell-style="{'text-align':'center'}"
         :data="records"
+        class="table--border"
         stripe
         style="width: 100%;" >
           <el-table-column
@@ -62,16 +63,16 @@
             width="280">
             <template slot-scope="scope">
               <el-button size="small" plain type="primary" @click="updateEmp(scope.row)">编辑</el-button>
-              <el-button 
+              <el-button
                 v-if="scope.row.status === '待复核'"
-                size="small" 
-                plain 
-                type="success" 
+                size="small"
+                plain
+                type="success"
                 @click="reviewEmp(scope.row)">复核</el-button>
-              <el-button 
-                size="small" 
-                plain 
-                type="danger" 
+              <el-button
+                size="small"
+                plain
+                type="danger"
                 @click="deleteEmp(scope.row)">删除</el-button>
             </template>
           </el-table-column>
@@ -86,7 +87,7 @@
           layout="total, sizes, prev, pager, next, jumper"
           :total="total">
       </el-pagination>
-      
+
     </div>
   </div>
 </template>
@@ -122,7 +123,7 @@ export default  {
         pageNum: this.pageNum,
         pageSize: this.pageSize
       }
-      
+
       getEmployeeList(params).then((res: any) => {
         if (res.data.code == 200) {
           this.records = res.data.data.records
@@ -148,7 +149,7 @@ export default  {
       // 路由跳转页面
       this.$router.push('/employee/add')
     },
-    
+
     updateEmp(row) {
       if(row.username === 'admin') {
         this.$message.error('超级管理员账号不允许操作')
@@ -229,11 +230,73 @@ export default  {
   margin-top: 20px;
 }
 
+.table--border {
+  margin-top: 20px;
+}
+
 ::v-deep .el-table__header-wrapper {
   th {
     background-color: rgba(96, 98, 102, 0.24) !important;
     color: #606266 !important;
     font-weight: bold !important;
+  }
+
+}
+
+.button1{
+  background-color: #409EFF !important;
+  border-color: #409EFF !important;
+}
+.button1:hover {
+  background-color: #66b1ff !important;
+  border-color: #66b1ff !important;
+}
+
+/* 操作按钮样式 - 恢复到原始plain按钮样式 */
+.action-button {
+  // 确保按钮保持plain样式
+  background-color: transparent !important;
+  color: #409EFF !important;
+  border-color: #409EFF !important;
+
+  // 悬停时的高亮效果
+  &:hover {
+    background-color: #ecf5ff !important;
+    border-color: #409EFF !important;
+    color: #409EFF !important;
+  }
+
+  // 点击后恢复到原始plain样式
+  &:active, &:focus {
+    background-color: transparent !important;
+    color: #409EFF !important;
+    border-color: #409EFF !important;
+    outline: none !important;
+    box-shadow: none !important;
+  }
+}
+
+/* 危险按钮样式 - 恢复到原始plain按钮样式 */
+.action-button.el-button--danger {
+  // 确保按钮保持plain样式
+  background-color: transparent !important;
+  color: #F56C6C !important;
+  border-color: #F56C6C !important;
+
+  // 悬停时的高亮效果
+  &:hover {
+    background-color: #fef0f0 !important;
+    border-color: #F56C6C !important;
+    color: #F56C6C !important;
+  }
+
+  // 点击后恢复到原始plain样式
+  &:active, &:focus {
+    background-color: transparent !important;
+    color: #F56C6C !important;
+    border-color: #F56C6C !important;
+    outline: none !important;
+    box-shadow: none !important;
   }
 }
 

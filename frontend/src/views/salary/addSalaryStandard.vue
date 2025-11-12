@@ -1,6 +1,7 @@
 <script lang="ts">
 import { addSalaryStandard, getSalaryStandardById, updateSalaryStandard, generateSalaryStandardNumber } from '@/api/salaryStandards'
 import { getSalaryItemsList } from '@/api/salaryItems'
+import Cookies from 'js-cookie'
 
 export default {
   data() {
@@ -18,9 +19,6 @@ export default {
         ],
         standardName: [
           { required: true, message: '请输入标准名称', trigger: 'blur' }
-        ],
-        creator: [
-          { required: true, message: '请输入制定人', trigger: 'blur' }
         ]
       },
       salaryItems: [],
@@ -32,6 +30,35 @@ export default {
     this.optType = this.$route.query.id ? 'edit' : 'add'
     if (this.optType === 'add') {
       this.generateNumber()
+      // 设置制定人为当前用户
+      try {
+        const userInfo = this.$store.state.user.userInfo
+        if (userInfo && userInfo.name) {
+          this.ruleForm.creator = userInfo.name
+        } else {
+          // 如果 store 中没有，尝试从 cookies 获取
+          const userInfoStr = Cookies.get('user_info')
+          if (userInfoStr) {
+            const userInfoFromCookie = JSON.parse(userInfoStr)
+            if (userInfoFromCookie && userInfoFromCookie.name) {
+              this.ruleForm.creator = userInfoFromCookie.name
+            }
+          }
+          // 如果还是没有，尝试从 store 的 username 或 name 获取
+          if (!this.ruleForm.creator) {
+            const username = this.$store.state.user.username || this.$store.state.user.name
+            if (username) {
+              this.ruleForm.creator = username
+            }
+          }
+        }
+      } catch (error) {
+        console.error('获取当前用户信息失败:', error)
+        // 如果都获取不到，使用默认值
+        if (!this.ruleForm.creator) {
+          this.ruleForm.creator = 'admin'
+        }
+      }
     } else {
       this.loadData()
     }
@@ -75,16 +102,32 @@ export default {
     addDetail() {
       this.ruleForm.details.push({
         salaryItemId: null,
-        amount: 0
+        amount: 0,
+        itemType: null // 存储项目类型
       })
     },
     removeDetail(index: number) {
       this.ruleForm.details.splice(index, 1)
       this.calculateTotal()
     },
+    getItemType(salaryItemId: number) {
+      const item = this.salaryItems.find((item: any) => item.id === salaryItemId)
+      return item ? item.itemType : null
+    },
     calculateTotal() {
       this.totalAmount = this.ruleForm.details.reduce((sum: number, detail: any) => {
-        return sum + (parseFloat(detail.amount) || 0)
+        if (!detail.salaryItemId) {
+          return sum
+        }
+        const itemType = this.getItemType(detail.salaryItemId)
+        const amount = parseFloat(detail.amount) || 0
+        // 收入类型：加上金额，扣除类型：减去金额
+        if (itemType === '收入') {
+          return sum + amount
+        } else if (itemType === '扣除') {
+          return sum - amount
+        }
+        return sum
       }, 0)
       this.ruleForm.totalAmount = this.totalAmount
     },
@@ -141,13 +184,13 @@ export default {
     <div class="container">
       <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="120px">
         <el-form-item label="标准编号" prop="standardNumber">
-          <el-input v-model="ruleForm.standardNumber" :disabled="optType === 'edit'"></el-input>
+          <el-input v-model="ruleForm.standardNumber" :disabled="true"></el-input>
         </el-form-item>
         <el-form-item label="标准名称" prop="standardName">
           <el-input v-model="ruleForm.standardName"></el-input>
         </el-form-item>
         <el-form-item label="制定人" prop="creator">
-          <el-input v-model="ruleForm.creator"></el-input>
+          <el-input v-model="ruleForm.creator" disabled placeholder="当前登录用户"></el-input>
         </el-form-item>
         
         <el-divider>薪酬项目明细</el-divider>
@@ -159,14 +202,22 @@ export default {
         <el-table :data="ruleForm.details" border style="width: 100%">
           <el-table-column label="薪酬项目" width="200">
             <template slot-scope="scope">
-              <el-select v-model="scope.row.salaryItemId" placeholder="请选择薪酬项目" @change="calculateTotal">
+              <el-select v-model="scope.row.salaryItemId" placeholder="请选择薪酬项目" @change="() => { scope.row.itemType = getItemType(scope.row.salaryItemId); calculateTotal(); }">
                 <el-option
                   v-for="item in salaryItems"
                   :key="item.id"
-                  :label="item.itemName"
+                  :label="item.itemName + ' (' + item.itemType + ')'"
                   :value="item.id">
                 </el-option>
               </el-select>
+            </template>
+          </el-table-column>
+          <el-table-column label="项目类型" width="120">
+            <template slot-scope="scope">
+              <el-tag v-if="scope.row.salaryItemId" :type="getItemType(scope.row.salaryItemId) === '收入' ? 'success' : 'danger'">
+                {{ getItemType(scope.row.salaryItemId) || '-' }}
+              </el-tag>
+              <span v-else>-</span>
             </template>
           </el-table-column>
           <el-table-column label="金额" width="150">
@@ -181,7 +232,7 @@ export default {
           </el-table-column>
           <el-table-column label="操作" width="100">
             <template slot-scope="scope">
-              <el-button size="small" type="danger" @click="removeDetail(scope.$index)">删除</el-button>
+              <el-button size="mini" type="danger" @click="removeDetail(scope.$index)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -195,12 +246,14 @@ export default {
         <el-form-item>
           <el-button
             v-if="optType == 'add'"
+            size="small"
             class="button1" type="primary" @click="submitForm('ruleForm')">立即创建</el-button>
           <el-button
             v-if="optType == 'edit'"
+            size="small"
             class="button1" type="primary" @click="submitForm('ruleForm')">保存修改</el-button>
-          <el-button class="button2" type="danger" plain @click="resetForm('ruleForm')">重置</el-button>
-          <el-button @click="() => this.$router.push({ path: '/salaryStandards' })">返回</el-button>
+          <el-button size="small" class="button2" type="danger" plain @click="resetForm('ruleForm')">重置</el-button>
+          <el-button size="small" @click="() => this.$router.push({ path: '/salaryStandards' })">返回</el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -249,4 +302,6 @@ export default {
   color: #F56C6C !important;
 }
 </style>
+
+
 

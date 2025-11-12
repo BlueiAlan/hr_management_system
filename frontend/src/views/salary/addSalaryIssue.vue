@@ -34,7 +34,7 @@ export default {
   },
   created() {
     this.loadOrgs()
-    this.loadEmployees()
+    // 初始不加载员工，等选择机构后再加载
     this.loadSalaryStandards()
     this.optType = this.$route.query.id ? 'edit' : 'add'
     if (this.optType === 'add') {
@@ -62,14 +62,55 @@ export default {
         this.$message.error('获取机构列表失败')
       }
     },
-    async loadEmployees() {
+    async loadEmployees(orgId?: number) {
       try {
-        const res = await getEmployeeList({ pageNum: 1, pageSize: 1000 })
+        const params: any = { 
+          pageNum: 1, 
+          pageSize: 1000,
+          status: '正常'
+        }
+        if (orgId) {
+          params.orgId = orgId
+        }
+        const res = await getEmployeeList(params)
         if (res.data.code == 200) {
           this.employeeList = res.data.data.records.filter((emp: any) => emp.status === '正常')
         }
       } catch (error) {
         this.$message.error('获取员工列表失败')
+      }
+    },
+    async handleOrgChange() {
+      // 机构变化时，重新加载该机构的员工
+      if (this.ruleForm.orgId) {
+        await this.loadEmployees(this.ruleForm.orgId)
+        // 清空已选择的员工（如果该员工不在新机构下）
+        this.ruleForm.details.forEach((detail: any) => {
+          if (detail.employeeId) {
+            const employee = this.employeeList.find((emp: any) => emp.id === detail.employeeId)
+            if (!employee) {
+              // 如果当前选择的员工不在新机构下，清空该明细的员工选择
+              detail.employeeId = null
+              detail.salaryStandardId = null
+              detail.rewardAmount = 0
+              detail.deductionAmount = 0
+              detail.finalAmount = 0
+            }
+          }
+        })
+        this.calculateTotal()
+      } else {
+        // 如果没有选择机构，清空员工列表
+        this.employeeList = []
+        // 清空所有明细
+        this.ruleForm.details.forEach((detail: any) => {
+          detail.employeeId = null
+          detail.salaryStandardId = null
+          detail.rewardAmount = 0
+          detail.deductionAmount = 0
+          detail.finalAmount = 0
+        })
+        this.calculateTotal()
       }
     },
     async loadSalaryStandards() {
@@ -90,6 +131,10 @@ export default {
           this.ruleForm = res.data.data
           if (!this.ruleForm.details) {
             this.ruleForm.details = []
+          }
+          // 编辑模式下，如果有机构ID，加载该机构的员工
+          if (this.ruleForm.orgId) {
+            await this.loadEmployees(this.ruleForm.orgId)
           }
           this.calculateTotal()
         }
@@ -156,8 +201,22 @@ export default {
             return
           }
           
-          const params = {
-            ...this.ruleForm,
+          // 验证明细数据
+          for (let i = 0; i < this.ruleForm.details.length; i++) {
+            const detail = this.ruleForm.details[i]
+            if (!detail.employeeId) {
+              this.$message.warning(`第 ${i + 1} 行：请选择员工`)
+              return
+            }
+            if (!detail.salaryStandardId) {
+              this.$message.warning(`第 ${i + 1} 行：请选择薪酬标准`)
+              return
+            }
+          }
+          
+          const params: any = {
+            orgId: this.ruleForm.orgId,
+            issueDate: this.ruleForm.issueDate,
             details: this.ruleForm.details.map((detail: any) => ({
               employeeId: detail.employeeId,
               salaryStandardId: detail.salaryStandardId,
@@ -165,6 +224,11 @@ export default {
               deductionAmount: parseFloat(detail.deductionAmount) || 0,
               finalAmount: parseFloat(detail.finalAmount) || 0
             }))
+          }
+          
+          // 如果是编辑模式，保留单号；如果是新增模式，不发送单号（由后端自动生成）
+          if (this.optType === 'edit' && this.ruleForm.issueNumber) {
+            params.issueNumber = this.ruleForm.issueNumber
           }
 
           if (this.optType === 'edit') {
@@ -174,8 +238,11 @@ export default {
                 this.$message.success('更新薪酬发放成功')
                 this.$router.push({ path: '/salaryIssues' })
               } else {
-                this.$message.error('更新薪酬发放失败')
+                this.$message.error(res.data.msg || '更新薪酬发放失败')
               }
+            }).catch((err: any) => {
+              console.error('更新薪酬发放失败:', err)
+              this.$message.error('更新薪酬发放失败：' + (err.response && err.response.data && err.response.data.msg ? err.response.data.msg : err.message || '未知错误'))
             })
           } else {
             addSalaryIssue(params).then((res: any) => {
@@ -183,10 +250,15 @@ export default {
                 this.$message.success('创建薪酬发放成功')
                 this.$router.push({ path: '/salaryIssues' })
               } else {
-                this.$message.error('创建薪酬发放失败')
+                this.$message.error(res.data.msg || '创建薪酬发放失败')
               }
+            }).catch((err: any) => {
+              console.error('创建薪酬发放失败:', err)
+              this.$message.error('创建薪酬发放失败：' + (err.response && err.response.data && err.response.data.msg ? err.response.data.msg : err.message || '未知错误'))
             })
           }
+        } else {
+          this.$message.warning('请填写完整的表单信息')
         }
       })
     },
@@ -205,10 +277,10 @@ export default {
     <div class="container">
       <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="120px">
         <el-form-item label="薪酬单号" prop="issueNumber">
-          <el-input v-model="ruleForm.issueNumber" :disabled="optType === 'edit'"></el-input>
+          <el-input v-model="ruleForm.issueNumber" disabled placeholder="系统自动生成"></el-input>
         </el-form-item>
         <el-form-item label="发放机构" prop="orgId">
-          <el-select v-model="ruleForm.orgId" placeholder="请选择发放机构" style="width: 293px;">
+          <el-select v-model="ruleForm.orgId" placeholder="请选择发放机构" style="width: 293px;" @change="handleOrgChange">
             <el-option
               v-for="org in orgList"
               :key="org.id"

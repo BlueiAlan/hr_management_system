@@ -205,11 +205,12 @@ public class SalaryIssuesServiceImpl extends ServiceImpl<SalaryIssuesMapper, Sal
 
         salaryIssues.setReviewedBy(reviewer);
         salaryIssues.setReviewedAt(LocalDateTime.now());
+        salaryIssues.setReviewOpinion(reviewOpinion);
 
         if (isApproved != null && isApproved) {
             salaryIssues.setStatus("已复核");
         } else {
-            salaryIssues.setStatus("待复核");
+            salaryIssues.setStatus("不通过");
         }
 
         baseMapper.updateById(salaryIssues);
@@ -237,11 +238,16 @@ public class SalaryIssuesServiceImpl extends ServiceImpl<SalaryIssuesMapper, Sal
 
     /**
      * 生成薪酬单号
+     * 格式：ISS + 年(4位) + 月(2位) + 三位数
+     * 示例：ISS202511001
      * @return
      */
     @Override
     public String generateIssueNumber() {
-        String prefix = "ISSUE" + LocalDate.now().toString().substring(0, 4).replace("-", "");
+        LocalDate now = LocalDate.now();
+        String year = String.valueOf(now.getYear());
+        String month = String.format("%02d", now.getMonthValue());
+        String prefix = "ISS" + year + month;
 
         LambdaQueryWrapper<SalaryIssues> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.like(SalaryIssues::getIssueNumber, prefix);
@@ -254,10 +260,14 @@ public class SalaryIssuesServiceImpl extends ServiceImpl<SalaryIssuesMapper, Sal
         }
 
         String lastNumber = lastIssue.getIssueNumber();
-        if (lastNumber.length() >= 9) {
+        if (lastNumber.startsWith(prefix) && lastNumber.length() >= prefix.length() + 3) {
             String numberPart = lastNumber.substring(prefix.length());
-            int number = Integer.parseInt(numberPart) + 1;
-            return prefix + String.format("%03d", number);
+            try {
+                int number = Integer.parseInt(numberPart) + 1;
+                return prefix + String.format("%03d", number);
+            } catch (NumberFormatException e) {
+                return prefix + "001";
+            }
         }
 
         return prefix + "001";

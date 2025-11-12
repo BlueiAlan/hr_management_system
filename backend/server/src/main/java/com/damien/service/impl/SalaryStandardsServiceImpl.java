@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -74,7 +75,7 @@ public class SalaryStandardsServiceImpl extends ServiceImpl<SalaryStandardsMappe
 
         // 设置登记时间
         if (salaryStandards.getRegisterTime() == null) {
-            salaryStandards.setRegisterTime(LocalDateTime.now());
+            salaryStandards.setRegisterTime(LocalDate.now());
         }
 
         // 设置登记人
@@ -119,6 +120,12 @@ public class SalaryStandardsServiceImpl extends ServiceImpl<SalaryStandardsMappe
         }
         if (StringUtils.hasText(query.getStatus())) {
             queryWrapper.eq(SalaryStandards::getStatus, query.getStatus());
+        }
+        if (query.getStartDate() != null) {
+            queryWrapper.ge(SalaryStandards::getRegisterTime, query.getStartDate());
+        }
+        if (query.getEndDate() != null) {
+            queryWrapper.le(SalaryStandards::getRegisterTime, query.getEndDate());
         }
 
         Page<SalaryStandards> page = query.toMpPageSortByCreatedAtDesc();
@@ -219,7 +226,10 @@ public class SalaryStandardsServiceImpl extends ServiceImpl<SalaryStandardsMappe
      */
     @Override
     public String generateStandardNumber() {
-        String prefix = "SAL" + LocalDateTime.now().toString().substring(0, 4).replace("-", "");
+        LocalDateTime now = LocalDateTime.now();
+        String year = String.valueOf(now.getYear());
+        String month = String.format("%02d", now.getMonthValue());
+        String prefix = "SAL" + year + month;
 
         LambdaQueryWrapper<SalaryStandards> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.like(SalaryStandards::getStandardNumber, prefix);
@@ -232,10 +242,14 @@ public class SalaryStandardsServiceImpl extends ServiceImpl<SalaryStandardsMappe
         }
 
         String lastNumber = lastStandard.getStandardNumber();
-        if (lastNumber.length() >= 7) {
+        if (lastNumber.length() >= prefix.length() + 3) {
             String numberPart = lastNumber.substring(prefix.length());
-            int number = Integer.parseInt(numberPart) + 1;
-            return prefix + String.format("%03d", number);
+            try {
+                int number = Integer.parseInt(numberPart) + 1;
+                return prefix + String.format("%03d", number);
+            } catch (NumberFormatException e) {
+                return prefix + "001";
+            }
         }
 
         return prefix + "001";

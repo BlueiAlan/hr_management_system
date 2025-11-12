@@ -141,7 +141,7 @@ export default {
     <div class="container">
       <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="120px">
         <el-form-item label="标准编号" prop="standardNumber">
-          <el-input v-model="ruleForm.standardNumber" :disabled="optType === 'edit'"></el-input>
+          <el-input v-model="ruleForm.standardNumber" :disabled="true"></el-input>
         </el-form-item>
         <el-form-item label="标准名称" prop="standardName">
           <el-input v-model="ruleForm.standardName"></el-input>
@@ -181,7 +181,7 @@ export default {
           </el-table-column>
           <el-table-column label="操作" width="100">
             <template slot-scope="scope">
-              <el-button size="small" type="danger" @click="removeDetail(scope.$index)">删除</el-button>
+              <el-button size="mini" type="danger" @click="removeDetail(scope.$index)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -195,12 +195,14 @@ export default {
         <el-form-item>
           <el-button
             v-if="optType == 'add'"
+            size="small"
             class="button1" type="primary" @click="submitForm('ruleForm')">立即创建</el-button>
           <el-button
             v-if="optType == 'edit'"
+            size="small"
             class="button1" type="primary" @click="submitForm('ruleForm')">保存修改</el-button>
-          <el-button class="button2" type="danger" plain @click="resetForm('ruleForm')">重置</el-button>
-          <el-button @click="() => this.$router.push({ path: '/salaryStandards' })">返回</el-button>
+          <el-button size="small" class="button2" type="danger" plain @click="resetForm('ruleForm')">重置</el-button>
+          <el-button size="small" @click="() => this.$router.push({ path: '/salaryStandards' })">返回</el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -249,4 +251,6 @@ export default {
   color: #F56C6C !important;
 }
 </style>
+
+
 

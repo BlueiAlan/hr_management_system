@@ -4,6 +4,7 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -14,7 +15,7 @@ public class SalaryStandardVO implements Serializable {
     private String standardName;
     private String creator;
     private String registrar;
-    private LocalDateTime registerTime;
+    private LocalDate registerTime;
     private BigDecimal totalAmount;
     private String status;
     private String reviewedBy;
@@ -24,4 +25,6 @@ public class SalaryStandardVO implements Serializable {
     private LocalDateTime updatedAt;
     private List<SalaryStandardDetailVO> details;
 }
+
+
 

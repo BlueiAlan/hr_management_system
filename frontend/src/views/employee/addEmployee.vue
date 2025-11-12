@@ -19,13 +19,13 @@
           <el-input v-model="ruleForm.idNumber"></el-input>
         </el-form-item>
         <div class="subBox">
-          <el-button type="primary" @click="submitForm('ruleForm',false)">保存</el-button>
-          <el-button 
-            v-if="this.optType === 'add'" 
-            type="primary" 
-            @click="submitForm('ruleForm',true)">保存并继续添加员工
+          <el-button type="primary" @click="submitForm('ruleForm',false)" class="button1">保存</el-button>
+          <el-button
+            v-if="this.optType === 'add'"
+            type="primary"
+            @click="submitForm('ruleForm',true)" class="button1">保存并继续添加员工
           </el-button>
-          <el-button @click="() => this.$router.push('/employee')">返回</el-button>
+          <el-button @click="() => this.$router.push('/employee')" class="action-button">返回</el-button>
         </div>
       </el-form>
     </div>
@@ -142,7 +142,7 @@ export default {
 
         }
       }))
-    }  
+    }
   }
 }
 </script>
@@ -181,6 +181,66 @@ export default {
     .el-input {
       width: 293px;
     }
+  }
+}
+
+
+.button1{
+  color: #FFFFFF;
+  background-color: #409EFF !important;
+  border-color: #409EFF !important;
+}
+.button1:hover {
+  color: #FFFFFF;
+  background-color: #66b1ff !important;
+  border-color: #66b1ff !important;
+}
+
+/* 操作按钮样式 - 恢复到原始plain按钮样式 */
+.action-button {
+  // 确保按钮保持plain样式
+  background-color: transparent !important;
+  color: #409EFF !important;
+  border-color: #409EFF !important;
+
+  // 悬停时的高亮效果
+  &:hover {
+    background-color: #ecf5ff !important;
+    border-color: #409EFF !important;
+    color: #409EFF !important;
+  }
+
+  // 点击后恢复到原始plain样式
+  &:active, &:focus {
+    background-color: transparent !important;
+    color: #409EFF !important;
+    border-color: #409EFF !important;
+    outline: none !important;
+    box-shadow: none !important;
+  }
+}
+
+/* 危险按钮样式 - 恢复到原始plain按钮样式 */
+.action-button.el-button--danger {
+  // 确保按钮保持plain样式
+  background-color: transparent !important;
+  color: #F56C6C !important;
+  border-color: #F56C6C !important;
+
+  // 悬停时的高亮效果
+  &:hover {
+    background-color: #fef0f0 !important;
+    border-color: #F56C6C !important;
+    color: #F56C6C !important;
+  }
+
+  // 点击后恢复到原始plain样式
+  &:active, &:focus {
+    background-color: transparent !important;
+    color: #F56C6C !important;
+    border-color: #F56C6C !important;
+    outline: none !important;
+    box-shadow: none !important;
   }
 }
 </style>

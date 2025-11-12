@@ -12,3 +12,6 @@ public class SalaryStandardDetailDTO implements Serializable {
     private BigDecimal amount;
 }
 
+
+
+

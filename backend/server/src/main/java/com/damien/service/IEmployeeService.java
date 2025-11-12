@@ -14,6 +14,7 @@ public interface IEmployeeService {
 
     /**
      * 员工登录
+     * 
      * @param employeeLoginDTO
      * @return
      */
@@ -21,12 +22,14 @@ public interface IEmployeeService {
 
     /**
      * 新增员工
+     * 
      * @param employeeDTO
      */
     void save(EmployeeDTO employeeDTO);
 
     /**
      * 分页查询员工
+     * 
      * @param employeeQuery
      * @return
      */
@@ -34,6 +37,7 @@ public interface IEmployeeService {
 
     /**
      * 根据id查询员工
+     * 
      * @param id
      * @return
      */
@@ -41,26 +45,45 @@ public interface IEmployeeService {
 
     /**
      * 更新员工信息
+     * 
      * @param employeeDTO
      */
     void update(EmployeeDTO employeeDTO);
 
     /**
      * 删除员工（逻辑删除）
+     * 
      * @param id
      */
     void deleteById(Integer id);
 
     /**
      * 复核员工
+     * 
      * @param id
      * @param reviewOpinion
      */
     void review(Integer id, String reviewOpinion);
 
     /**
+     * 复核员工（支持更新信息）
+     * 
+     * @param employeeDTO   员工信息（可选，如果提供则更新信息）
+     * @param reviewOpinion 复核意见
+     */
+    void reviewWithUpdate(EmployeeDTO employeeDTO, String reviewOpinion);
+
+    /**
      * 修改员工密码
-     * @param passwordDTO  员工密码DTO
+     * 
+     * @param passwordDTO 员工密码DTO
      */
     boolean updatePassword(EmployeePasswordDTO passwordDTO);
+
+    /**
+     * 恢复已删除的员工档案
+     * 
+     * @param id
+     */
+    void restore(Integer id);
 }

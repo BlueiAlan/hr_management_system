@@ -54,8 +54,9 @@ public interface IEmployeeService {
      * 删除员工（逻辑删除）
      * 
      * @param id
+     * @param deleteMsg 删除原因
      */
-    void deleteById(Integer id);
+    void deleteById(Integer id, String deleteMsg);
 
     /**
      * 复核员工

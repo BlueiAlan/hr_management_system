@@ -57,10 +57,17 @@ export const login = (data: any) =>
       'data': params
   })
 
-  export const deleteEmployee = (id: number) =>
+  export const deleteEmployee = (id: number, deleteMsg?: string) =>
   request({
       'url': `/admin/employee/${id}`,
       'method': 'delete',
+      params: { deleteMsg }
+  })
+
+  export const restoreEmployee = (id: number) =>
+  request({
+      'url': `/admin/employee/restore/${id}`,
+      'method': 'post',
   })
 
   export const reviewEmployee = (id: number, reviewOpinion?: string) =>

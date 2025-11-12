@@ -11,13 +11,14 @@
         <el-button type="primary" style="float: right; color:#FFFFFF;" class="button1" @click="handleAddEmp">+添加员工</el-button>
       </div>
 
-        <el-table
+      <!-- 正常员工表格 -->
+      <el-table
         :cell-style="{'text-align':'center'}"
         :header-cell-style="{'text-align':'center'}"
-        :data="records"
+        :data="normalRecords"
         class="table--border"
         stripe
-        style="width: 100%;" >
+        style="width: 100%; margin-top: 20px;" >
           <el-table-column
             prop="username"
             label="姓名"
@@ -62,7 +63,11 @@
             label="操作"
             width="280">
             <template slot-scope="scope">
-              <el-button size="small" plain type="primary" @click="updateEmp(scope.row)">编辑</el-button>
+              <el-button 
+                size="small" 
+                plain 
+                type="primary" 
+                @click="updateEmp(scope.row)">编辑</el-button>
               <el-button
                 v-if="scope.row.status === '待复核'"
                 size="small"
@@ -88,12 +93,75 @@
           :total="total">
       </el-pagination>
 
+      <!-- 已删除员工容器 -->
+      <div v-if="deletedRecords.length > 0" class="deleted-container" style="margin-top: 40px;">
+        <h3 style="margin-bottom: 20px; color: #606266;">已删除员工</h3>
+        <el-table
+          :cell-style="{'text-align':'center'}"
+          :header-cell-style="{'text-align':'center'}"
+          :data="deletedRecords"
+          class="table--border"
+          stripe
+          style="width: 100%;" >
+            <el-table-column
+              prop="archiveNumber"
+              label="档案编号"
+              width="150">
+              <template slot-scope="scope">
+                <span style="color: #409EFF;">{{ scope.row.archiveNumber }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column
+              prop="username"
+              label="姓名"
+              width="120">
+            </el-table-column>
+            <el-table-column
+              prop="deletedAt"
+              label="删除时间"
+              width="180">
+              <template slot-scope="scope">
+                <span v-if="scope.row.deletedAt">{{ formatDateTime(scope.row.deletedAt) }}</span>
+                <span v-else>-</span>
+              </template>
+            </el-table-column>
+            <el-table-column
+              prop="deleteMsg"
+              label="删除原因"
+              width="150">
+              <template slot-scope="scope">
+                <span>{{ scope.row.deleteMsg || '-' }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column
+              prop="status"
+              label="状态"
+              width="100">
+              <template slot-scope="scope">
+                <el-tag type="danger">{{ scope.row.status }}</el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column
+              label="操作"
+              width="200">
+              <template slot-scope="scope">
+                <el-button
+                  size="small"
+                  plain
+                  type="success"
+                  @click="restoreEmp(scope.row)">
+                  <i class="el-icon-refresh" style="margin-right: 5px;"></i>恢复</el-button>
+              </template>
+            </el-table-column>
+        </el-table>
+      </div>
+
     </div>
   </div>
 </template>
 <script lang="ts">
 
-import { getEmployeeList, deleteEmployee, reviewEmployee } from '@/api/employee'
+import { getEmployeeList, deleteEmployee, reviewEmployee, restoreEmployee } from '@/api/employee'
 export default  {
 
   // 模型数据
@@ -103,7 +171,9 @@ export default  {
       pageNum: 1,
       pageSize: 10,
       total: 0,
-      records: []
+      records: [],
+      normalRecords: [], // 正常状态的员工
+      deletedRecords: [] // 已删除的员工
     }
   },
 
@@ -118,19 +188,44 @@ export default  {
     pageQuery() {
 
       // 请求参数
-      const params = {
+      const params: any = {
         username: this.username,
         pageNum: this.pageNum,
         pageSize: this.pageSize
       }
 
-      getEmployeeList(params).then((res: any) => {
+      // 查询正常状态的员工（排除已删除）
+      const normalParams: any = {
+        username: this.username,
+        pageNum: this.pageNum,
+        pageSize: this.pageSize
+      }
+      // 不传status参数，后端会自动排除已删除的记录
+      getEmployeeList(normalParams).then((res: any) => {
         if (res.data.code == 200) {
           this.records = res.data.data.records
           this.total = res.data.data.total
+          // 过滤掉已删除的员工（双重保险）
+          this.normalRecords = this.records.filter((record: any) => record.status !== '已删除')
         }
       }).catch((err: any) => {
         this.$message.error('请求失败' + err.message)
+      })
+
+      // 查询已删除的员工（单独查询，不分页）
+      const deletedParams: any = {
+        username: this.username,
+        pageNum: 1,
+        pageSize: 1000,
+        status: '已删除'
+      }
+      getEmployeeList(deletedParams).then((res: any) => {
+        if (res.data.code == 200) {
+          this.deletedRecords = res.data.data.records || []
+        }
+      }).catch((err: any) => {
+        // 已删除员工查询失败不影响主流程
+        console.error('查询已删除员工失败', err)
       })
     },
 
@@ -196,12 +291,18 @@ export default  {
         return
       }
 
-      this.$confirm('确认删除员工 ' + row.username + ' 吗？', '提示', {
+      this.$prompt('请输入删除原因', '删除员工 ' + row.username, {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        deleteEmployee(row.id).then(res => {
+        inputPlaceholder: '请输入删除原因，如：员工离职',
+        inputValidator: (value) => {
+          if (!value || value.trim() === '') {
+            return '删除原因不能为空'
+          }
+          return true
+        }
+      }).then(({ value }) => {
+        deleteEmployee(row.id, value).then(res => {
           if (res.data.code == 200) {
             this.$message.success('删除成功')
             this.pageQuery()
@@ -214,6 +315,40 @@ export default  {
       }).catch(() => {
         // 用户点击取消
       })
+    },
+
+    // 恢复员工
+    restoreEmp(row) {
+      this.$confirm('确认恢复员工 ' + row.username + ' 吗？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        restoreEmployee(row.id).then(res => {
+          if (res.data.code == 200) {
+            this.$message.success('恢复成功')
+            this.pageQuery()
+          } else {
+            this.$message.error('恢复失败')
+          }
+        }).catch(err => {
+          this.$message.error('请求失败' + err.message)
+        })
+      }).catch(() => {
+        // 用户点击取消
+      })
+    },
+
+    // 格式化日期时间
+    formatDateTime(dateTime: string) {
+      if (!dateTime) return '-'
+      const date = new Date(dateTime)
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      const hours = String(date.getHours()).padStart(2, '0')
+      const minutes = String(date.getMinutes()).padStart(2, '0')
+      return `${year}-${month}-${day} ${hours}:${minutes}`
     }
   }
 }
@@ -298,6 +433,19 @@ export default  {
     outline: none !important;
     box-shadow: none !important;
   }
+}
+
+/* 已删除员工容器样式 */
+.deleted-container {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 2px solid #e4e7ed;
+}
+
+.deleted-container h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 20px;
 }
 
 </style>

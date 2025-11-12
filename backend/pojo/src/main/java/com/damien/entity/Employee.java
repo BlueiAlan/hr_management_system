@@ -43,6 +43,12 @@ public class Employee implements Serializable {
 
     private String password;
 
+    @ApiModelProperty(value = "删除原因")
+    private String deleteMsg;
+
+    @ApiModelProperty(value = "删除时间")
+    private LocalDateTime deletedAt;
+
     @ApiModelProperty(value = "角色权限")
     private Integer role;
 

@@ -92,4 +92,8 @@ public class EmployeeVO implements Serializable {
 
     private LocalDateTime updatedAt;
 
+    private String deleteMsg;
+
+    private LocalDateTime deletedAt;
+
 }

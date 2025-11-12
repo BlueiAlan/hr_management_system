@@ -86,11 +86,35 @@ public class SalaryStandardsServiceImpl extends ServiceImpl<SalaryStandardsMappe
             salaryStandards.setRegistrar("admin");
         }
 
-        // 计算总额
+        // 计算总额（根据项目类型：收入类型加上，扣除类型减去）
         if (salaryStandardDTO.getDetails() != null && !salaryStandardDTO.getDetails().isEmpty()) {
-            BigDecimal totalAmount = salaryStandardDTO.getDetails().stream()
-                    .map(SalaryStandardDetailDTO::getAmount)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            BigDecimal totalAmount = BigDecimal.ZERO;
+            // 获取所有薪酬项目信息
+            List<Integer> salaryItemIds = salaryStandardDTO.getDetails().stream()
+                    .map(SalaryStandardDetailDTO::getSalaryItemId)
+                    .filter(id -> id != null)
+                    .collect(Collectors.toList());
+            
+            if (!salaryItemIds.isEmpty()) {
+                List<SalaryItems> salaryItemsList = salaryItemsMapper.selectBatchIds(salaryItemIds);
+                Map<Integer, SalaryItems> salaryItemsMap = salaryItemsList.stream()
+                        .collect(Collectors.toMap(SalaryItems::getId, item -> item));
+                
+                for (SalaryStandardDetailDTO detail : salaryStandardDTO.getDetails()) {
+                    if (detail.getSalaryItemId() != null && detail.getAmount() != null) {
+                        SalaryItems salaryItem = salaryItemsMap.get(detail.getSalaryItemId());
+                        if (salaryItem != null) {
+                            if ("收入".equals(salaryItem.getItemType())) {
+                                // 收入类型：加上金额
+                                totalAmount = totalAmount.add(detail.getAmount());
+                            } else if ("扣除".equals(salaryItem.getItemType())) {
+                                // 扣除类型：减去金额
+                                totalAmount = totalAmount.subtract(detail.getAmount());
+                            }
+                        }
+                    }
+                }
+            }
             salaryStandards.setTotalAmount(totalAmount);
         }
 
@@ -169,11 +193,35 @@ public class SalaryStandardsServiceImpl extends ServiceImpl<SalaryStandardsMappe
         SalaryStandards salaryStandards = new SalaryStandards();
         BeanUtils.copyProperties(salaryStandardDTO, salaryStandards);
 
-        // 计算总额
+        // 计算总额（根据项目类型：收入类型加上，扣除类型减去）
         if (salaryStandardDTO.getDetails() != null && !salaryStandardDTO.getDetails().isEmpty()) {
-            BigDecimal totalAmount = salaryStandardDTO.getDetails().stream()
-                    .map(SalaryStandardDetailDTO::getAmount)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            BigDecimal totalAmount = BigDecimal.ZERO;
+            // 获取所有薪酬项目信息
+            List<Integer> salaryItemIds = salaryStandardDTO.getDetails().stream()
+                    .map(SalaryStandardDetailDTO::getSalaryItemId)
+                    .filter(id -> id != null)
+                    .collect(Collectors.toList());
+            
+            if (!salaryItemIds.isEmpty()) {
+                List<SalaryItems> salaryItemsList = salaryItemsMapper.selectBatchIds(salaryItemIds);
+                Map<Integer, SalaryItems> salaryItemsMap = salaryItemsList.stream()
+                        .collect(Collectors.toMap(SalaryItems::getId, item -> item));
+                
+                for (SalaryStandardDetailDTO detail : salaryStandardDTO.getDetails()) {
+                    if (detail.getSalaryItemId() != null && detail.getAmount() != null) {
+                        SalaryItems salaryItem = salaryItemsMap.get(detail.getSalaryItemId());
+                        if (salaryItem != null) {
+                            if ("收入".equals(salaryItem.getItemType())) {
+                                // 收入类型：加上金额
+                                totalAmount = totalAmount.add(detail.getAmount());
+                            } else if ("扣除".equals(salaryItem.getItemType())) {
+                                // 扣除类型：减去金额
+                                totalAmount = totalAmount.subtract(detail.getAmount());
+                            }
+                        }
+                    }
+                }
+            }
             salaryStandards.setTotalAmount(totalAmount);
         }
 

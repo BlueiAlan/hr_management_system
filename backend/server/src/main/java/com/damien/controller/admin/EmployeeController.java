@@ -138,13 +138,15 @@ public class EmployeeController {
      * 删除员工
      * 
      * @param id
+     * @param deleteMsg 删除原因
      * @return
      */
     @DeleteMapping("/{id}")
     @ApiOperation(value = "删除员工")
-    public Result<String> deleteById(@PathVariable Integer id) {
-        log.info("删除员工，id：{}", id);
-        employeeService.deleteById(id);
+    public Result<String> deleteById(@PathVariable Integer id, 
+                                     @RequestParam(required = false) String deleteMsg) {
+        log.info("删除员工，id：{}，删除原因：{}", id, deleteMsg);
+        employeeService.deleteById(id, deleteMsg);
         return Result.success("删除员工成功");
     }
 

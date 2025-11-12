@@ -156,13 +156,15 @@ public class EmployeeServiceImpl implements IEmployeeService {
         }
 
         // 排除已删除的记录（如果查询条件中没有指定状态，或者指定了其他状态）
+        // 只有当明确指定status="已删除"时，才查询已删除的记录
         if (!StringUtils.hasText(employeeQuery.getStatus())) {
+            // 如果status为空，排除已删除的记录（默认只显示正常状态的员工）
             queryWrapper.ne(Employee::getStatus, "已删除");
         } else if (!"已删除".equals(employeeQuery.getStatus())) {
             // 如果指定了状态但不是"已删除"，则排除已删除的记录
             queryWrapper.ne(Employee::getStatus, "已删除");
         }
-        // 如果指定了status="已删除"，则只查询已删除的记录（不排除）
+        // 如果status="已删除"，则不排除已删除的记录，只查询已删除的记录
 
         // 分页查询
         Page<Employee> page = employeeQuery.toMpPageSortByCreatedAtDesc();
@@ -232,10 +234,11 @@ public class EmployeeServiceImpl implements IEmployeeService {
      * 删除员工（逻辑删除）
      * 
      * @param id
+     * @param deleteMsg 删除原因
      */
     @Override
     @Transactional
-    public void deleteById(Integer id) {
+    public void deleteById(Integer id, String deleteMsg) {
         Employee employee = employeeMapper.selectById(id);
         if (employee == null) {
             throw new RuntimeException("员工不存在");
@@ -245,6 +248,8 @@ public class EmployeeServiceImpl implements IEmployeeService {
             throw new RuntimeException("状态为'待复核'的员工档案不能删除");
         }
         employee.setStatus("已删除");
+        employee.setDeleteMsg(deleteMsg);
+        employee.setDeletedAt(LocalDateTime.now());
         employeeMapper.updateById(employee);
     }
 
@@ -409,6 +414,8 @@ public class EmployeeServiceImpl implements IEmployeeService {
         }
 
         employee.setStatus("正常");
+        employee.setDeleteMsg(null);
+        employee.setDeletedAt(null);
         employeeMapper.updateById(employee);
     }
 

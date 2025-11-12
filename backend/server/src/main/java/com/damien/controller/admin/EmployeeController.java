@@ -168,14 +168,28 @@ public class EmployeeController {
      * 
      * @param employeeDTO   员工信息
      * @param reviewOpinion 复核意见
+     * @param isApproved    是否通过复核
      * @return
      */
     @PostMapping("/review-with-update")
     @ApiOperation(value = "复核员工（支持更新信息）")
     public Result<String> reviewWithUpdate(@RequestBody EmployeeDTO employeeDTO,
-            @RequestParam(required = false) String reviewOpinion) {
-        log.info("复核员工并更新信息，id：{}，复核意见：{}", employeeDTO.getId(), reviewOpinion);
-        employeeService.reviewWithUpdate(employeeDTO, reviewOpinion);
+            @RequestParam(required = false) String isApprovedStr) {
+        // 处理isApproved参数，可能是字符串"true"/"false"或boolean
+        Boolean isApproved = null;
+        if (isApprovedStr != null && !isApprovedStr.isEmpty()) {
+            if ("true".equalsIgnoreCase(isApprovedStr) || "1".equals(isApprovedStr)) {
+                isApproved = true;
+            } else if ("false".equalsIgnoreCase(isApprovedStr) || "0".equals(isApprovedStr)) {
+                isApproved = false;
+            }
+        }
+        log.info("复核员工并更新信息，id：{}，是否通过：{}", employeeDTO.getId(), isApproved);
+        // 如果isApproved为null，默认为false（不通过）
+        if (isApproved == null) {
+            isApproved = false;
+        }
+        employeeService.reviewWithUpdate(employeeDTO, null, isApproved);
         return Result.success("复核成功");
     }
 

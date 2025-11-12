@@ -60,5 +60,8 @@ public class SalaryIssues implements Serializable {
 
     private LocalDateTime reviewedAt;
 
+    @ApiModelProperty(value = "复核意见")
+    private String reviewOpinion;
+
 
 }

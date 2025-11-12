@@ -112,6 +112,7 @@
           <template slot-scope="scope">
             <el-tag v-if="scope.row.status === '正常'" type="success">{{ scope.row.status }}</el-tag>
             <el-tag v-else-if="scope.row.status === '待复核'" type="warning">{{ scope.row.status }}</el-tag>
+            <el-tag v-else-if="scope.row.status === '不通过'" type="danger">{{ scope.row.status }}</el-tag>
             <el-tag v-else type="info">{{ scope.row.status }}</el-tag>
           </template>
         </el-table-column>

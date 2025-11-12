@@ -29,12 +29,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 import org.springframework.util.StringUtils;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class EmployeeServiceImpl implements IEmployeeService {
 
@@ -275,10 +277,11 @@ public class EmployeeServiceImpl implements IEmployeeService {
      * 
      * @param employeeDTO   员工信息（可选，如果提供则更新信息）
      * @param reviewOpinion 复核意见
+     * @param isApproved    是否通过复核
      */
     @Override
     @Transactional
-    public void reviewWithUpdate(EmployeeDTO employeeDTO, String reviewOpinion) {
+    public void reviewWithUpdate(EmployeeDTO employeeDTO, String reviewOpinion, Boolean isApproved) {
         Employee employee = employeeMapper.selectById(employeeDTO.getId());
         if (employee == null) {
             throw new RuntimeException("员工不存在");
@@ -364,9 +367,19 @@ public class EmployeeServiceImpl implements IEmployeeService {
 
         employee.setReviewedBy(reviewer);
         employee.setReviewedAt(LocalDateTime.now());
-        employee.setStatus("正常");
+        
+        // 根据是否通过设置状态
+        log.info("复核员工，isApproved: {}, 当前状态: {}", isApproved, employee.getStatus());
+        if (isApproved != null && isApproved) {
+            employee.setStatus("正常");
+            log.info("设置状态为：正常");
+        } else {
+            employee.setStatus("不通过"); // 不通过时设置为"不通过"
+            log.info("设置状态为：不通过");
+        }
 
         employeeMapper.updateById(employee);
+        log.info("更新后的状态: {}", employee.getStatus());
     }
 
     /**

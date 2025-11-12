@@ -205,11 +205,12 @@ public class SalaryIssuesServiceImpl extends ServiceImpl<SalaryIssuesMapper, Sal
 
         salaryIssues.setReviewedBy(reviewer);
         salaryIssues.setReviewedAt(LocalDateTime.now());
+        salaryIssues.setReviewOpinion(reviewOpinion);
 
         if (isApproved != null && isApproved) {
             salaryIssues.setStatus("已复核");
         } else {
-            salaryIssues.setStatus("待复核");
+            salaryIssues.setStatus("不通过");
         }
 
         baseMapper.updateById(salaryIssues);

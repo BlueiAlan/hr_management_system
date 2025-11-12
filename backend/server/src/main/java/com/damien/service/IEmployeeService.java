@@ -71,7 +71,7 @@ public interface IEmployeeService {
      * @param employeeDTO   员工信息（可选，如果提供则更新信息）
      * @param reviewOpinion 复核意见
      */
-    void reviewWithUpdate(EmployeeDTO employeeDTO, String reviewOpinion);
+    void reviewWithUpdate(EmployeeDTO employeeDTO, String reviewOpinion, Boolean isApproved);
 
     /**
      * 修改员工密码

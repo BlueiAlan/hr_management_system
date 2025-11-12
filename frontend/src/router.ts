@@ -176,6 +176,14 @@ const router = new Router({
                     }
                 },
                 {
+                    path: "/salaryIssues/review",
+                    component: () => import("@/views/salary/salaryIssueReview.vue"),
+                    meta: {
+                        title: "薪酬发放管理",
+                        hidden: true
+                    }
+                },
+                {
                     path: "/resources",
                     component: () => import("@/views/resources/index.vue"),
                     meta: {

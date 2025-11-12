@@ -49,11 +49,13 @@ export const reviewResource = (id: number, reviewOpinion?: string) => {
 }
 
 // 人力资源档案登记复核（支持更新信息）
-export const reviewResourceWithUpdate = (data: any, reviewOpinion?: string) => {
+export const reviewResourceWithUpdate = (data: any, isApproved?: boolean) => {
   return request({
     url: '/admin/employee/review-with-update',
     method: 'post',
-    params: { reviewOpinion },
+    params: { 
+      isApprovedStr: isApproved !== undefined ? String(isApproved) : 'false' 
+    },
     data: data
   })
 }

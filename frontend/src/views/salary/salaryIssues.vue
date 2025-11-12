@@ -50,6 +50,7 @@
               <el-tag v-if="scope.row.status === '已发放'" type="success">{{ scope.row.status }}</el-tag>
               <el-tag v-else-if="scope.row.status === '已复核'" type="info">{{ scope.row.status }}</el-tag>
               <el-tag v-else-if="scope.row.status === '待复核'" type="warning">{{ scope.row.status }}</el-tag>
+              <el-tag v-else-if="scope.row.status === '不通过'" type="danger">{{ scope.row.status }}</el-tag>
               <el-tag v-else type="info">{{ scope.row.status }}</el-tag>
             </template>
           </el-table-column>
@@ -152,20 +153,7 @@ export default {
       this.$router.push({ path: '/salaryIssues/add', query: { id: row.id } })
     },
     handleReview(index, row) {
-      this.$confirm('确认复核薪酬发放单 ' + row.issueNumber + ' 吗？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        reviewSalaryIssue(row.id, '', true).then(res => {
-          if (res.data.code == 200) {
-            this.$message.success('复核成功')
-            this.pageQuery()
-          } else {
-            this.$message.error('复核失败')
-          }
-        })
-      }).catch(() => {})
+      this.$router.push({ path: '/salaryIssues/review', query: { id: row.id } })
     },
     handleIssue(index, row) {
       this.$confirm('确认发放薪酬单 ' + row.issueNumber + ' 吗？', '提示', {

@@ -143,6 +143,18 @@ import { getPage } from '@/api/organizations'
             label="机构名称"
           >
           </el-table-column>
+          <el-table-column
+            v-if="orgLevel == '2'"
+            prop="parentOrgName"
+            label="所属机构"
+          >
+          </el-table-column>
+          <el-table-column
+            v-if="orgLevel == '3'"
+            prop="fromOrg"
+            label="所属机构"
+          >
+          </el-table-column>
           <el-table-column label="操作">
             <template v-slot="scope">
               <el-button

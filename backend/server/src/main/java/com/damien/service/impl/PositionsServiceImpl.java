@@ -93,9 +93,9 @@ public class PositionsServiceImpl extends ServiceImpl<PositionsMapper, Positions
             int secondOrgId = orgMap.get(thirdOrgId).getParentId();
             int firstOrgId = orgMap.get(secondOrgId).getParentId();
 
-            String name = orgMap.get(firstOrgId).getOrgName() + SEPARATOR +
+            String name = orgMap.get(thirdOrgId).getOrgName() + SEPARATOR +
                     orgMap.get(secondOrgId).getOrgName() + SEPARATOR +
-                    orgMap.get(thirdOrgId).getOrgName();
+                    orgMap.get(firstOrgId).getOrgName();
             positionsVO.setFromOrg(name);
         }
         return positionsVOList;

@@ -133,6 +133,12 @@
               plain
               type="success"
               @click="handleReview(scope.row)">复核</el-button>
+            <el-button
+              v-if="scope.row.status === '正常'"
+              size="small"
+              plain
+              type="danger"
+              @click="handleDeleteResource(scope.row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -148,12 +154,75 @@
         layout="total, sizes, prev, pager, next, jumper"
         :total="total">
       </el-pagination>
+
+      <!-- 已删除档案容器 -->
+      <div v-if="deletedRecords.length > 0" class="deleted-container" style="margin-top: 40px;">
+        <h3 style="margin-bottom: 20px; color: #606266;">已删除档案</h3>
+        <el-table
+          :cell-style="{'text-align':'center'}"
+          :header-cell-style="{'text-align':'center'}"
+          :data="deletedRecords"
+          class="table--border"
+          stripe
+          style="width: 100%;" >
+            <el-table-column
+              prop="archiveNumber"
+              label="档案编号"
+              width="150">
+              <template slot-scope="scope">
+                <span style="color: #409EFF;">{{ scope.row.archiveNumber }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column
+              prop="username"
+              label="姓名"
+              width="120">
+            </el-table-column>
+            <el-table-column
+              prop="deletedAt"
+              label="删除时间"
+              width="180">
+              <template slot-scope="scope">
+                <span v-if="scope.row.deletedAt">{{ formatDateTime(scope.row.deletedAt) }}</span>
+                <span v-else>-</span>
+              </template>
+            </el-table-column>
+            <el-table-column
+              prop="deleteMsg"
+              label="删除原因"
+              width="150">
+              <template slot-scope="scope">
+                <span>{{ scope.row.deleteMsg || '-' }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column
+              prop="status"
+              label="状态"
+              width="100">
+              <template slot-scope="scope">
+                <el-tag type="danger">{{ scope.row.status }}</el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column
+              label="操作"
+              width="200">
+              <template slot-scope="scope">
+                <el-button
+                  size="small"
+                  plain
+                  type="success"
+                  @click="handleRestoreResource(scope.row)">
+                  <i class="el-icon-refresh" style="margin-right: 5px;"></i>恢复</el-button>
+              </template>
+            </el-table-column>
+        </el-table>
+      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { queryResourcePage } from '@/api/resource'
+import { queryResourcePage, deleteResource, restoreResource } from '@/api/resource'
 import { getOrgList } from '@/api/organizations'
 import { getPositionList } from '@/api/positions'
 
@@ -172,7 +241,8 @@ export default {
       pageNum: 1,
       pageSize: 10,
       total: 0,
-      records: []
+      records: [],
+      deletedRecords: [] // 已删除的档案
     }
   },
 
@@ -268,13 +338,41 @@ export default {
         params.endDate = this.dateRange[1]
       }
 
+      // 查询正常状态的档案（排除已删除）
       queryResourcePage(params).then((res: any) => {
         if (res.data.code == 200) {
           this.records = res.data.data.records
           this.total = res.data.data.total
+          // 过滤掉已删除的档案（双重保险）
+          this.records = this.records.filter((record: any) => record.status !== '已删除')
         }
       }).catch((err) => {
         this.$message.error('请求失败：' + err.message)
+      })
+
+      // 查询已删除的档案（单独查询，不分页）
+      const deletedParams: any = {
+        pageNum: 1,
+        pageSize: 1000,
+        status: '已删除'
+      }
+      if (this.org3Id) {
+        deletedParams.orgId = this.org3Id
+      }
+      if (this.positionId) {
+        deletedParams.positionId = this.positionId
+      }
+      if (this.dateRange && this.dateRange.length === 2) {
+        deletedParams.startDate = this.dateRange[0]
+        deletedParams.endDate = this.dateRange[1]
+      }
+      queryResourcePage(deletedParams).then((res: any) => {
+        if (res.data.code == 200) {
+          this.deletedRecords = res.data.data.records || []
+        }
+      }).catch((err: any) => {
+        // 已删除档案查询失败不影响主流程
+        console.error('查询已删除档案失败', err)
       })
     },
 
@@ -319,6 +417,73 @@ export default {
         path: '/resources/review',
         query: { id: row.id }
       })
+    },
+
+    // 删除档案
+    handleDeleteResource(row: any) {
+      if (row.status === '待复核') {
+        this.$message.warning('状态为"待复核"的档案不能删除')
+        return
+      }
+
+      this.$prompt('请输入删除原因', '删除档案 ' + row.username, {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        inputPlaceholder: '请输入删除原因，如：员工离职',
+        inputValidator: (value) => {
+          if (!value || value.trim() === '') {
+            return '删除原因不能为空'
+          }
+          return true
+        }
+      }).then(({ value }) => {
+        deleteResource(row.id, value).then((res: any) => {
+          if (res.data.code == 200) {
+            this.$message.success('删除成功')
+            this.pageQuery()
+          } else {
+            this.$message.error(res.data.msg || '删除失败')
+          }
+        }).catch((err: any) => {
+          this.$message.error('请求失败：' + err.message)
+        })
+      }).catch(() => {
+        // 用户点击取消
+      })
+    },
+
+    // 恢复档案
+    handleRestoreResource(row: any) {
+      this.$confirm('确认恢复档案 ' + row.username + ' 吗？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        restoreResource(row.id).then((res: any) => {
+          if (res.data.code == 200) {
+            this.$message.success('恢复成功')
+            this.pageQuery()
+          } else {
+            this.$message.error(res.data.msg || '恢复失败')
+          }
+        }).catch((err: any) => {
+          this.$message.error('请求失败：' + err.message)
+        })
+      }).catch(() => {
+        // 用户点击取消
+      })
+    },
+
+    // 格式化日期时间
+    formatDateTime(dateTime: string) {
+      if (!dateTime) return '-'
+      const date = new Date(dateTime)
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      const hours = String(date.getHours()).padStart(2, '0')
+      const minutes = String(date.getMinutes()).padStart(2, '0')
+      return `${year}-${month}-${day} ${hours}:${minutes}`
     }
   }
 }
@@ -345,5 +510,18 @@ export default {
 .button1:hover {
   background-color: #66b1ff !important;
   border-color: #66b1ff !important;
+}
+
+/* 已删除档案容器样式 */
+.deleted-container {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 2px solid #e4e7ed;
+}
+
+.deleted-container h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 20px;
 }
 </style>

@@ -187,7 +187,7 @@ const router = new Router({
                     path: "/resources",
                     component: () => import("@/views/resources/index.vue"),
                     meta: {
-                        title: "人力资源档案管理",
+                        title: "资源档案管理",
                         icon: "icon-category",
                         affix: true
                     }
@@ -231,7 +231,16 @@ const router = new Router({
                         title: "人力资源档案管理",
                         hidden: true
                     }
+                },
+              {
+                path: "/position",
+                component: () => import("@/views/positions/index.vue"),
+                meta: {
+                    title: "职务档案管理",
+                    icon: "icon-employee",
+                    affix: true
                 }
+              }
             ]
         },
         {

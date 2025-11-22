@@ -1,7 +1,5 @@
 package com.damien.vo;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -25,6 +23,12 @@ public class OrganizationsVO implements Serializable {
 
     @ApiModelProperty(value = "父级机构ID")
     private Integer parentId;
+
+    @ApiModelProperty(value = "父级机构名称（用于二级机构显示一级机构）")
+    private String parentOrgName;
+
+    @ApiModelProperty(value = "所属机构路径（用于三级机构显示：一级/二级）")
+    private String fromOrg;
 
     private LocalDateTime createdAt;
 

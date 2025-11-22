@@ -2,18 +2,22 @@ package com.damien.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.damien.constant.StatusConstant;
 import com.damien.dto.OrganizationsDTO;
 import com.damien.dto.PageDTO;
 import com.damien.entity.Organizations;
 import com.damien.mapper.OrganizationsMapper;
 import com.damien.query.OrganizationsQuery;
-import com.damien.query.PageQuery;
 import com.damien.service.IOrganizationsService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.damien.vo.OrganizationsVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -56,7 +60,57 @@ public class OrganizationsServiceImpl extends ServiceImpl<OrganizationsMapper, O
         Page<Organizations> page = new Page<>(query.getPageNum(), query.getPageSize());
         page = this.page(page, queryWrapper);
 
-        return PageDTO.of(page, OrganizationsVO.class);
+        PageDTO<OrganizationsVO> pageDTO = PageDTO.of(page, OrganizationsVO.class);
+        
+        // 填充父级机构名称
+        if (query.getOrgLevel() == 2 || query.getOrgLevel() == 3) {
+            fillParentOrgName(pageDTO.getRecords(), query.getOrgLevel());
+        }
+        
+        return pageDTO;
+    }
+
+    /**
+     * 填充父级机构名称
+     * @param organizationsVOList 机构VO列表
+     * @param orgLevel 机构级别
+     */
+    private void fillParentOrgName(List<OrganizationsVO> organizationsVOList, Integer orgLevel) {
+        if (organizationsVOList == null || organizationsVOList.isEmpty()) {
+            return;
+        }
+
+        // 获取所有机构映射
+        Map<Integer, Organizations> orgMap = baseMapper.selectList(new LambdaQueryWrapper<Organizations>()
+                        .eq(Organizations::getIsDeleted, StatusConstant.NO_DELETED))
+                .stream()
+                .collect(Collectors.toMap(Organizations::getId, o -> o));
+
+        for (OrganizationsVO orgVO : organizationsVOList) {
+            if (orgVO.getParentId() == null) {
+                continue;
+            }
+
+            Organizations parentOrg = orgMap.get(orgVO.getParentId());
+            if (parentOrg == null) {
+                continue;
+            }
+
+            if (orgLevel == 2) {
+                // 二级机构：显示一级机构名称
+                orgVO.setParentOrgName(parentOrg.getOrgName());
+            } else if (orgLevel == 3) {
+                // 三级机构：显示二级/一级机构路径
+                Organizations secondOrg = parentOrg; // 二级机构
+                Organizations firstOrg = orgMap.get(secondOrg.getParentId()); // 一级机构
+                
+                if (firstOrg != null) {
+                    orgVO.setFromOrg(secondOrg.getOrgName() + "/" + firstOrg.getOrgName());
+                } else {
+                    orgVO.setFromOrg(secondOrg.getOrgName());
+                }
+            }
+        }
     }
 
     /**

@@ -49,6 +49,9 @@ public class Employee implements Serializable {
     @ApiModelProperty(value = "删除时间")
     private LocalDateTime deletedAt;
 
+    /**
+     * 角色权限：0-超级管理员，1-人事专员，2-人事经理，3-薪酬专员，4-薪酬经理
+     */
     @ApiModelProperty(value = "角色权限")
     private Integer role;
 

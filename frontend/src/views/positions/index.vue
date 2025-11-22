@@ -15,7 +15,7 @@
             :value="item.orgLevel">
           </el-option>
         </el-select>
-        <el-button  style="float: right; margin-right: 25px; width: 120px" class="" @click="() => {this.$router.push({path: '/salaryItems'})}">薪酬项目列表</el-button>
+<!--        <el-button  style="float: right; margin-right: 25px; width: 120px" class="" @click="() => {this.$router.push({path: '/salaryItems'})}">薪酬项目列表</el-button>-->
 
       </div>
     </div>

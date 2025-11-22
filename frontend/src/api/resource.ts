@@ -61,10 +61,11 @@ export const reviewResourceWithUpdate = (data: any, isApproved?: boolean) => {
 }
 
 // 人力资源档案删除
-export const deleteResource = (id: number) => {
+export const deleteResource = (id: number, deleteMsg?: string) => {
   return request({
     url: `/admin/employee/${id}`,
-    method: 'delete'
+    method: 'delete',
+    params: { deleteMsg }
   })
 }
 

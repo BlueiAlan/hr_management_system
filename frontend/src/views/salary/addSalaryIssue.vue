@@ -3,6 +3,9 @@ import { addSalaryIssue, getSalaryIssueById, updateSalaryIssue, generateSalaryIs
 import { getOrgList } from '@/api/organizations'
 import { getEmployeeList } from '@/api/employee'
 import { getSalaryStandardList } from '@/api/salaryStandards'
+import { filterAdminEmployees } from '@/utils/permission'
+import { UserModule } from '@/store/modules/user'
+import Cookies from 'js-cookie'
 
 export default {
   data() {
@@ -74,7 +77,15 @@ export default {
         }
         const res = await getEmployeeList(params)
         if (res.data.code == 200) {
-          this.employeeList = res.data.data.records.filter((emp: any) => emp.status === '正常')
+          let employeeList = res.data.data.records.filter((emp: any) => emp.status === '正常')
+          
+          // 获取当前用户角色，过滤超级管理员信息
+          const userInfo = Cookies.get('user_info') ? JSON.parse(Cookies.get('user_info') as string) : {}
+          const currentUserRole = UserModule.role || userInfo.role || 0
+          // 非超级管理员用户看不到超级管理员的信息
+          employeeList = filterAdminEmployees(employeeList, currentUserRole)
+          
+          this.employeeList = employeeList
         }
       } catch (error) {
         this.$message.error('获取员工列表失败')

@@ -45,9 +45,13 @@
           </div>
         </div>
       </div>
+      <!-- 权限角色显示 -->
+      <div class="role-display">
+        <span class="role-text" :class="'role-' + role">{{ roleName }}</span>
+      </div>
     </div>
     <!-- 营业状态弹层 -->
-    <el-dialog title="营业状态设置"
+<!--    <el-dialog title="营业状态设置"
                :visible.sync="dialogVisible"
                width="25%"
                :show-close="false">
@@ -67,7 +71,7 @@
         <el-button type="primary"
                    @click="handleSave">确 定</el-button>
       </span>
-    </el-dialog>
+    </el-dialog>-->
     <!-- end -->
     <!-- 修改密码 -->
     <Password :dialog-form-visible="dialogFormVisible"
@@ -86,6 +90,7 @@ import { getStatus, setStatus } from '@/api/users'
 import Cookies from 'js-cookie'
 import { debounce, throttle } from '@/utils/common'
 import { setNewData, getNewData } from '@/utils/cookies'
+import { RoleNames } from '@/utils/permission'
 
 // 接口
 import { getCountUnread } from '@/api/inform'
@@ -135,6 +140,37 @@ export default class extends Vue {
     return (UserModule.userInfo as any).name
       ? (UserModule.userInfo as any).name
       : JSON.parse(Cookies.get('user_info') as any).name
+  }
+
+  get role() {
+    return (UserModule.userInfo as any).role
+      ? (UserModule.userInfo as any).role
+      : JSON.parse(Cookies.get('user_info') as any).role
+  }
+
+  // 获取角色名称
+  get roleName() {
+    const userRole = this.role || 0
+    return RoleNames[userRole] || '未知角色'
+  }
+
+  // 根据角色返回不同的标签类型
+  get roleTagType() {
+    const userRole = this.role || 0
+    switch (userRole) {
+      case 0: // 超级管理员
+        return 'danger'
+      case 1: // 人事专员
+        return 'success'
+      case 2: // 人事经理
+        return 'warning'
+      case 3: // 薪酬专员
+        return 'info'
+      case 4: // 薪酬经理
+        return 'warning'
+      default:
+        return ''
+    }
   }
 
   get getStoreId() {
@@ -347,6 +383,8 @@ export default class extends Vue {
 
     color: #333333;
     font-size: 14px;
+    display: flex;
+    align-items: center;
 
     span {
       padding: 0 10px;
@@ -405,7 +443,47 @@ export default class extends Vue {
     // .avatar-container {
     // margin-right: 30px;
 
-    // }
+    //     }
+  }
+  .role-display {
+    margin-right: 20px;
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    height: 32px;
+    line-height: 32px;
+    .role-text {
+      font-size: 14px;
+      color: #333333;
+      padding: 0 12px;
+      height: 32px;
+      line-height: 32px;
+      background: rgba(255, 255, 255, 0.52);
+      border-radius: 4px;
+      display: inline-block;
+      text-align: center;
+      min-width: 80px;
+      
+      // 不同角色的颜色
+      &.role-0 {
+        color: #f56c6c; // 超级管理员 - 红色
+        font-weight: 500;
+      }
+      &.role-1 {
+        color: #67c23a; // 人事专员 - 绿色
+      }
+      &.role-2 {
+        color: #e6a23c; // 人事经理 - 橙色
+        font-weight: 500;
+      }
+      &.role-3 {
+        color: #409eff; // 薪酬专员 - 蓝色
+      }
+      &.role-4 {
+        color: #e6a23c; // 薪酬经理 - 橙色
+        font-weight: 500;
+      }
+    }
   }
   .rightStatus {
     height: 100%;

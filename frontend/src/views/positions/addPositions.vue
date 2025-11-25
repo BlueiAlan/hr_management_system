@@ -81,7 +81,7 @@ export default {
             updatePosition(params).then((response) => {
             if (response.data.code == 200) {
               this.$message.success('更新职位成功');
-              this.$router.push({ path: '/dashboard' });
+              this.$router.push({ path: '/position' });
             } else {
               this.$message.error('更新职位失败');
             }
@@ -90,7 +90,7 @@ export default {
             addPosition(params).then((response) => {
               if (response.data.code == 200) {
                 this.$message.success('创建职位成功');
-                this.$router.push({path: '/dashboard'});
+                this.$router.push({path: '/position'});
               } else {
                 this.$message.error('创建职位失败');
               }
@@ -136,7 +136,7 @@ export default {
             v-if="this.optType == 'edit'"
             class="button1" type="primary" @click="submitForm('ruleForm')">保存修改</el-button>
           <el-button class="button2" type="danger" plain @click="resetForm('ruleForm')">重置</el-button>
-          <el-button  @click="() => this.$router.push({ path: '/dashboard' })">返回</el-button>
+          <el-button  @click="() => this.$router.push({ path: '/position' })">返回</el-button>
         </el-form-item>
       </el-form>
 

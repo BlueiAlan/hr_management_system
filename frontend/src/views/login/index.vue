@@ -97,14 +97,32 @@ export default class extends Vue {
         await UserModule.Login(this.loginForm as any)
           .then((res: any) => {
             if (String(res.code) === '200') {
-              // 将条件从name === 'admin'改为role === 1
-              if (res.data.role === 1) {
-                this.$router.push('/')
-              } else {
-                //登录成功，跳转到系统首页
-                this.$router.push('/resources')
-                // this.$router.push('/positions')
+              // 根据用户角色跳转到对应的首页
+              const role = res.data.role || 0
+              let redirectPath = '/'
+              
+              // 根据角色跳转到有权限的页面（注意：dashboard和employee路由已被注释）
+              switch (role) {
+                case 0: // 超级管理员 - dashboard被注释，使用position
+                  redirectPath = '/position'
+                  break
+                case 1: // 人事专员 - employee被注释，使用resources
+                  redirectPath = '/resources'
+                  break
+                case 2: // 人事经理 - dashboard被注释，使用position
+                  redirectPath = '/position'
+                  break
+                case 3: // 薪酬专员 - 跳转到薪酬标准管理
+                  redirectPath = '/salaryStandards'
+                  break
+                case 4: // 薪酬经理 - 跳转到薪酬标准管理
+                  redirectPath = '/salaryStandards'
+                  break
+                default:
+                  redirectPath = '/resources'
               }
+              
+              this.$router.push(redirectPath)
             } else {
               // this.$message.error(res.msg)
               this.loading = false

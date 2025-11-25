@@ -47,6 +47,9 @@
 
 <script lang="ts">
 import { queryResourcePage, deleteResource, restoreResource } from '@/api/resource'
+import { filterAdminEmployees } from '@/utils/permission'
+import { UserModule } from '@/store/modules/user'
+import Cookies from 'js-cookie'
 
 export default {
   data() {
@@ -66,8 +69,24 @@ export default {
         queryResourcePage({ pageNum: 1, pageSize: 1000, status: '正常' }),
         queryResourcePage({ pageNum: 1, pageSize: 1000, status: '已删除' })
       ]).then((results: any[]) => {
-        const normalRecords = results[0].data.code == 200 ? results[0].data.data.records : []
-        const deletedRecords = results[1].data.code == 200 ? results[1].data.data.records : []
+        let normalRecords = results[0].data.code == 200 ? results[0].data.data.records : []
+        let deletedRecords = results[1].data.code == 200 ? results[1].data.data.records : []
+        
+        // 获取当前用户角色，过滤超级管理员信息
+        const userInfo = Cookies.get('user_info') ? JSON.parse(Cookies.get('user_info') as string) : {}
+        let currentUserRole = UserModule.role
+        if (currentUserRole === undefined || currentUserRole === null) {
+          currentUserRole = userInfo.role
+        }
+        if (currentUserRole === undefined || currentUserRole === null) {
+          currentUserRole = 0
+        }
+        currentUserRole = Number(currentUserRole)
+        
+        // 非超级管理员用户看不到超级管理员的信息
+        normalRecords = filterAdminEmployees(normalRecords, currentUserRole)
+        deletedRecords = filterAdminEmployees(deletedRecords, currentUserRole)
+        
         this.records = [...normalRecords, ...deletedRecords]
       }).catch((err) => {
         this.$message.error('获取档案列表失败')

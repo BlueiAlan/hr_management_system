@@ -162,6 +162,10 @@
 <script lang="ts">
 
 import { getEmployeeList, deleteEmployee, reviewEmployee, restoreEmployee } from '@/api/employee'
+import { filterAdminEmployees, Role } from '@/utils/permission'
+import { UserModule } from '@/store/modules/user'
+import Cookies from 'js-cookie'
+
 export default  {
 
   // 模型数据
@@ -204,9 +208,50 @@ export default  {
       getEmployeeList(normalParams).then((res: any) => {
         if (res.data.code == 200) {
           this.records = res.data.data.records
-          this.total = res.data.data.total
           // 过滤掉已删除的员工（双重保险）
-          this.normalRecords = this.records.filter((record: any) => record.status !== '已删除')
+          let filteredRecords = this.records.filter((record: any) => record.status !== '已删除')
+          
+          // 获取当前用户角色，过滤超级管理员信息
+          const userInfo = Cookies.get('user_info') ? JSON.parse(Cookies.get('user_info') as string) : {}
+          // 确保获取到正确的角色值，优先使用 UserModule.role，其次使用 userInfo.role
+          // 如果都没有，默认为 0（超级管理员），但这种情况应该不会发生
+          let currentUserRole = UserModule.role
+          if (currentUserRole === undefined || currentUserRole === null) {
+            currentUserRole = userInfo.role
+          }
+          if (currentUserRole === undefined || currentUserRole === null) {
+            currentUserRole = 0 // 默认值，但这种情况不应该发生
+          }
+          // 确保是数字类型
+          currentUserRole = Number(currentUserRole)
+          
+          // 调试信息（生产环境可以删除）
+          // console.log('当前用户角色:', currentUserRole)
+          // console.log('过滤前员工数量:', filteredRecords.length)
+          // console.log('员工角色列表:', filteredRecords.map((r: any) => ({ username: r.username, role: r.role })))
+          
+          // 非超级管理员用户看不到超级管理员的信息
+          filteredRecords = filterAdminEmployees(filteredRecords, currentUserRole)
+          
+          // 调试信息（生产环境可以删除）
+          // console.log('过滤后员工数量:', filteredRecords.length)
+          // console.log('过滤后员工角色列表:', filteredRecords.map((r: any) => ({ username: r.username, role: r.role })))
+          
+          this.normalRecords = filteredRecords
+          
+          // 总数处理：由于是前端过滤，无法准确知道所有页面的超级管理员数量
+          // 如果当前用户是超级管理员，使用后端返回的 total
+          // 如果当前用户不是超级管理员，使用过滤后的当前页数据长度作为参考
+          // 注意：这可能导致分页总数不完全准确，但数据是正确的
+          if (currentUserRole === 0) {
+            // 超级管理员可以看到所有数据
+            this.total = res.data.data.total
+          } else {
+            // 非超级管理员：由于无法准确计算所有页面的超级管理员数量
+            // 这里使用后端返回的 total，但实际显示的数据是过滤后的
+            // 分页可能不完全准确，但数据是正确的
+            this.total = res.data.data.total
+          }
         }
       }).catch((err: any) => {
         this.$message.error('请求失败' + err.message)
@@ -221,7 +266,15 @@ export default  {
       }
       getEmployeeList(deletedParams).then((res: any) => {
         if (res.data.code == 200) {
-          this.deletedRecords = res.data.data.records || []
+          let deletedRecords = res.data.data.records || []
+          
+          // 获取当前用户角色，过滤超级管理员信息
+          const userInfo = Cookies.get('user_info') ? JSON.parse(Cookies.get('user_info') as string) : {}
+          const currentUserRole = UserModule.role || userInfo.role || 0
+          // 非超级管理员用户看不到超级管理员的信息
+          deletedRecords = filterAdminEmployees(deletedRecords, currentUserRole)
+          
+          this.deletedRecords = deletedRecords
         }
       }).catch((err: any) => {
         // 已删除员工查询失败不影响主流程

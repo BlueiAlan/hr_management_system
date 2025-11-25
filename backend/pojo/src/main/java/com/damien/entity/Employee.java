@@ -4,11 +4,12 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.IdType;
 import java.time.LocalDate;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import java.time.LocalDateTime;
 import java.io.Serializable;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import io.swagger.v3.oas.models.security.SecurityScheme;
 import lombok.*;
 import lombok.experimental.Accessors;
 
@@ -47,6 +48,7 @@ public class Employee implements Serializable {
     private String deleteMsg;
 
     @ApiModelProperty(value = "删除时间")
+    @TableField(insertStrategy = FieldStrategy.IGNORED)
     private LocalDateTime deletedAt;
 
     /**

@@ -225,6 +225,9 @@
 import { queryResourcePage, deleteResource, restoreResource } from '@/api/resource'
 import { getOrgList } from '@/api/organizations'
 import { getPositionList } from '@/api/positions'
+import { filterAdminEmployees } from '@/utils/permission'
+import { UserModule } from '@/store/modules/user'
+import Cookies from 'js-cookie'
 
 export default {
   data() {
@@ -341,10 +344,32 @@ export default {
       // 查询正常状态的档案（排除已删除）
       queryResourcePage(params).then((res: any) => {
         if (res.data.code == 200) {
-          this.records = res.data.data.records
-          this.total = res.data.data.total
+          let records = res.data.data.records
           // 过滤掉已删除的档案（双重保险）
-          this.records = this.records.filter((record: any) => record.status !== '已删除')
+          records = records.filter((record: any) => record.status !== '已删除')
+          
+          // 获取当前用户角色，过滤超级管理员信息
+          const userInfo = Cookies.get('user_info') ? JSON.parse(Cookies.get('user_info') as string) : {}
+          let currentUserRole = UserModule.role
+          if (currentUserRole === undefined || currentUserRole === null) {
+            currentUserRole = userInfo.role
+          }
+          if (currentUserRole === undefined || currentUserRole === null) {
+            currentUserRole = 0
+          }
+          currentUserRole = Number(currentUserRole)
+          
+          // 非超级管理员用户看不到超级管理员的信息
+          records = filterAdminEmployees(records, currentUserRole)
+          
+          this.records = records
+          
+          // 总数处理
+          if (currentUserRole === 0) {
+            this.total = res.data.data.total
+          } else {
+            this.total = res.data.data.total
+          }
         }
       }).catch((err) => {
         this.$message.error('请求失败：' + err.message)
@@ -368,7 +393,23 @@ export default {
       }
       queryResourcePage(deletedParams).then((res: any) => {
         if (res.data.code == 200) {
-          this.deletedRecords = res.data.data.records || []
+          let deletedRecords = res.data.data.records || []
+          
+          // 获取当前用户角色，过滤超级管理员信息
+          const userInfo = Cookies.get('user_info') ? JSON.parse(Cookies.get('user_info') as string) : {}
+          let currentUserRole = UserModule.role
+          if (currentUserRole === undefined || currentUserRole === null) {
+            currentUserRole = userInfo.role
+          }
+          if (currentUserRole === undefined || currentUserRole === null) {
+            currentUserRole = 0
+          }
+          currentUserRole = Number(currentUserRole)
+          
+          // 非超级管理员用户看不到超级管理员的信息
+          deletedRecords = filterAdminEmployees(deletedRecords, currentUserRole)
+          
+          this.deletedRecords = deletedRecords
         }
       }).catch((err: any) => {
         // 已删除档案查询失败不影响主流程

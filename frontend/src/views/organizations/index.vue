@@ -126,7 +126,7 @@ import { getPage } from '@/api/organizations'
           clearable
           @input="handleInput">
         </el-input>
-        <el-button type="primary" style="float: right; color:#FFFFFF;" class="button1" @click="$router.push('/dashboard')">返回</el-button>
+        <el-button type="primary" style="float: right; color:#FFFFFF;" class="button1" @click="$router.push('/position')">返回</el-button>
         <div style="margin-top: 29px; width: 100%;">
           <el-button type="primary" style=" color:#FFFFFF; width: 200px" class="button1" @click="handleAddOrg()">+添加{{pageTitle}}</el-button>
         </div>

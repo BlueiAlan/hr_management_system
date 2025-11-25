@@ -17,3 +17,5 @@ public class SalaryIssueQuery extends PageQuery {
 
 
 
+
+

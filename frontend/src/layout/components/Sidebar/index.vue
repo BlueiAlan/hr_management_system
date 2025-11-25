@@ -54,17 +54,26 @@ export default class extends Vue {
     let menu = routes.find(item => item.path === '/')
     if (menu) {
       menuList = menu.children
-      // 使用role字段判断，而不是username
+      // 使用role字段判断权限
       const userInfo = Cookies.get('user_info') ? JSON.parse(Cookies.get('user_info') as string) : {}
       const role = UserModule.role || userInfo.role || 0
 
-      // 如果用户role不为1，过滤掉系统设置菜单项
-      if (role !== 1) {
-        menuList = menuList.filter((item: any) => {
-          // 过滤标题为"系统设置"的路由
-          return !(item.meta && item.meta.title === '系统设置')
-        })
-      }
+      // 根据权限过滤菜单项
+      menuList = menuList.filter((item: any) => {
+        // 如果路由没有定义权限要求，默认显示（兼容旧代码）
+        if (!item.meta || !item.meta.roles || !Array.isArray(item.meta.roles)) {
+          return true
+        }
+        
+        // 检查用户是否有访问该菜单的权限
+        // 超级管理员(0)拥有所有权限
+        if (role === 0) {
+          return true
+        }
+        
+        // 检查用户角色是否在允许的角色列表中
+        return item.meta.roles.includes(role)
+      })
     }
     console.log('-=-=routes=-wwww=-=', routes)
     return menuList

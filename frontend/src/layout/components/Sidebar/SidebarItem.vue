@@ -43,7 +43,7 @@
         </template>
         <template v-if="item.children">
           <sidebar-item
-            v-for="child in item.children"
+            v-for="child in filteredChildren"
             :key="child.path"
             :item="child"
             :is-collapse="isCollapse"
@@ -64,6 +64,8 @@ import { UserModule } from '@/store/modules/user'
 import { Route, RouteConfig } from 'vue-router'
 import { isExternal } from '@/utils/validate'
 import SidebarItemLink from './SidebarItemLink.vue'
+import Cookies from 'js-cookie'
+import { hasPermission, Role } from '@/utils/permission'
 
 @Component({
   name: 'SidebarItem',
@@ -83,7 +85,8 @@ export default class extends Vue {
         if (item.meta && item.meta.hidden) {
           return false
         }
-        return true
+        // 权限检查
+        return this.hasItemPermission(item)
       })
       return showingChildren.length
     }
@@ -92,6 +95,41 @@ export default class extends Vue {
 
   get roles() {
     return UserModule.roles
+  }
+
+  // 检查菜单项是否有权限
+  private hasItemPermission(item: RouteConfig): boolean {
+    // 如果路由没有定义权限要求，默认显示
+    if (!item.meta || !item.meta.roles || !Array.isArray(item.meta.roles)) {
+      return true
+    }
+    
+    // 获取用户角色
+    const userInfo = Cookies.get('user_info') ? JSON.parse(Cookies.get('user_info') as string) : {}
+    const role = UserModule.role || userInfo.role || 0
+    
+    // 超级管理员拥有所有权限
+    if (role === Role.ADMIN) {
+      return true
+    }
+    
+    // 检查用户角色是否在允许的角色列表中
+    return hasPermission(role, item.meta.roles as number[])
+  }
+
+  // 过滤子菜单项（根据权限）
+  get filteredChildren() {
+    if (!this.item.children) {
+      return []
+    }
+    return this.item.children.filter((child) => {
+      // 隐藏的菜单项不显示
+      if (child.meta && child.meta.hidden) {
+        return false
+      }
+      // 权限检查
+      return this.hasItemPermission(child)
+    })
   }
 
   get theOnlyOneChild() {

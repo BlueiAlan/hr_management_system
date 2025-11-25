@@ -1,6 +1,7 @@
 import Vue from "vue";
 import Router from "vue-router";
 import Layout from "@/layout/index.vue";
+import { Role } from "@/utils/permission";
 // import {
 //   getToken,
 //   setToken,
@@ -39,26 +40,47 @@ const router = new Router({
         {
             path: "/",
             component: Layout,
-            redirect: "/dashboard",
+            redirect: "/resources", // dashboard被注释，临时重定向到resources，实际会由路由守卫根据角色动态重定向
             children: [
-                {
-                    path: "dashboard",
-                    component: () => import("@/views/positions/index.vue"),
-                    name: "Dashboard",
-                    meta: {
-                        title: "系统设置",
-                        icon: "dashboard",
-                        affix: true,
-                        // notNeedAuth: true
-                    }
-                },
+                /*                {
+                                    path: "dashboard",
+                                    component: () => import("@/views/positions/index.vue"),
+                                    name: "Dashboard",
+                                    meta: {
+                                        title: "系统设置",
+                                        icon: "dashboard",
+                                        affix: true,
+                                        roles: [Role.HR_MANAGER, Role.ADMIN], // 职位设置：人事经理、超级管理员
+                                        // notNeedAuth: true
+                                    }
+                                },
+                              {
+                                path: "/employee",
+                                component: () => import("@/views/employee/index.vue"),
+                                meta: {
+                                  title: "员工管理",
+                                  icon: "icon-employee",
+                                  affix: true,
+                                  roles: [Role.HR_SPECIALIST, Role.HR_MANAGER, Role.ADMIN] // 员工查询：人事专员、人事经理、超级管理员
+                                }
+                              },
+                              {
+                                path: "/employee/add",
+                                component: () => import("@/views/employee/addEmployee.vue"),
+                                meta: {
+                                  title: "员工管理",
+                                  hidden: true,
+                                  roles: [Role.HR_SPECIALIST, Role.HR_MANAGER, Role.ADMIN] // 员工管理：人事专员、人事经理、超级管理员
+                                }
+                              },*/
                 {
                     path: "/positions/add",
                     component: () => import("@/views/positions/addPositions.vue"),
                     meta: {
                         // title: "添加/修改职位",
                         title: "系统设置",
-                        hidden: true
+                        hidden: true,
+                        roles: [Role.HR_MANAGER, Role.ADMIN] // 职位设置：人事经理、超级管理员
                     }
                 },
                 {
@@ -69,6 +91,7 @@ const router = new Router({
                         title: "系统设置",
                         icon: "icon-employee",
                         hidden: true,
+                        roles: [Role.HR_MANAGER, Role.ADMIN], // 机构关系设置：人事经理、超级管理员
                         // affix: true
                     }
                 },
@@ -79,7 +102,8 @@ const router = new Router({
                     meta: {
                         // title: "添加/修改机构",
                         title: "系统设置",
-                        hidden: true
+                        hidden: true,
+                        roles: [Role.HR_MANAGER, Role.ADMIN] // 机构关系设置：人事经理、超级管理员
                     }
                 },
                 {
@@ -88,7 +112,8 @@ const router = new Router({
                     meta: {
                         // title: "薪资项目管理",
                         title: "系统设置",
-                        hidden: true
+                        hidden: true,
+                        roles: [Role.SALARY_MANAGER, Role.ADMIN] // 薪酬项目设置：薪酬经理、超级管理员
                     }
                 },
                 {
@@ -97,33 +122,19 @@ const router = new Router({
                     meta: {
                         // title: "添加/修改薪资项目",
                         title: "系统设置",
-                        hidden: true
+                        hidden: true,
+                        roles: [Role.SALARY_MANAGER, Role.ADMIN] // 薪酬项目设置：薪酬经理、超级管理员
                     }
                 },
-                {
-                    path: "/employee",
-                    component: () => import("@/views/employee/index.vue"),
-                    meta: {
-                        title: "员工管理",
-                        icon: "icon-employee",
-                        affix: true
-                    }
-                },
-                {
-                    path: "/employee/add",
-                    component: () => import("@/views/employee/addEmployee.vue"),
-                    meta: {
-                        title: "员工管理",
-                        hidden: true
-                    }
-                },
+
                 {
                     path: "/salaryStandards",
                     component: () => import("@/views/salary/salaryStandards.vue"),
                     meta: {
                         title: "薪酬标准管理",
                         icon: "icon-order",
-                        affix: true
+                        affix: true,
+                        roles: [Role.SALARY_SPECIALIST, Role.SALARY_MANAGER, Role.ADMIN] // 薪酬标准管理：薪酬专员、薪酬经理、超级管理员
                     }
                 },
                 {
@@ -131,7 +142,8 @@ const router = new Router({
                     component: () => import("@/views/salary/addSalaryStandard.vue"),
                     meta: {
                         title: "薪酬标准管理",
-                        hidden: true
+                        hidden: true,
+                        roles: [Role.SALARY_SPECIALIST, Role.SALARY_MANAGER, Role.ADMIN] // 薪酬标准管理：薪酬专员、薪酬经理、超级管理员
                     }
                 },
                 {
@@ -139,7 +151,8 @@ const router = new Router({
                     component: () => import("@/views/salary/salaryStandardDetail.vue"),
                     meta: {
                         title: "薪酬标准管理",
-                        hidden: true
+                        hidden: true,
+                        roles: [Role.SALARY_SPECIALIST, Role.SALARY_MANAGER, Role.ADMIN] // 薪酬标准管理：薪酬专员、薪酬经理、超级管理员
                     }
                 },
                 {
@@ -147,7 +160,8 @@ const router = new Router({
                     component: () => import("@/views/salary/salaryStandardReview.vue"),
                     meta: {
                         title: "薪酬标准管理",
-                        hidden: true
+                        hidden: true,
+                        roles: [Role.SALARY_SPECIALIST, Role.SALARY_MANAGER, Role.ADMIN] // 薪酬标准管理：薪酬专员、薪酬经理、超级管理员
                     }
                 },
                 {
@@ -156,7 +170,8 @@ const router = new Router({
                     meta: {
                         title: "薪酬发放管理",
                         icon: "icon-statistics",
-                        affix: true
+                        affix: true,
+                        roles: [Role.SALARY_SPECIALIST, Role.SALARY_MANAGER, Role.ADMIN] // 薪酬发放管理：薪酬专员、薪酬经理、超级管理员
                     }
                 },
                 {
@@ -164,7 +179,8 @@ const router = new Router({
                     component: () => import("@/views/salary/addSalaryIssue.vue"),
                     meta: {
                         title: "薪酬发放管理",
-                        hidden: true
+                        hidden: true,
+                        roles: [Role.SALARY_SPECIALIST, Role.SALARY_MANAGER, Role.ADMIN] // 薪酬发放管理：薪酬专员、薪酬经理、超级管理员
                     }
                 },
                 {
@@ -172,7 +188,8 @@ const router = new Router({
                     component: () => import("@/views/salary/salaryIssueDetail.vue"),
                     meta: {
                         title: "薪酬发放管理",
-                        hidden: true
+                        hidden: true,
+                        roles: [Role.SALARY_SPECIALIST, Role.SALARY_MANAGER, Role.ADMIN] // 薪酬发放管理：薪酬专员、薪酬经理、超级管理员
                     }
                 },
                 {
@@ -180,7 +197,8 @@ const router = new Router({
                     component: () => import("@/views/salary/salaryIssueReview.vue"),
                     meta: {
                         title: "薪酬发放管理",
-                        hidden: true
+                        hidden: true,
+                        roles: [Role.SALARY_SPECIALIST, Role.SALARY_MANAGER, Role.ADMIN] // 薪酬发放管理：薪酬专员、薪酬经理、超级管理员
                     }
                 },
                 {
@@ -189,7 +207,8 @@ const router = new Router({
                     meta: {
                         title: "资源档案管理",
                         icon: "icon-category",
-                        affix: true
+                        affix: true,
+                        roles: [Role.HR_SPECIALIST, Role.HR_MANAGER, Role.ADMIN] // 人力资源档案查询：人事专员、人事经理、超级管理员
                     }
                 },
                 {
@@ -197,7 +216,8 @@ const router = new Router({
                     component: () => import("@/views/resources/register.vue"),
                     meta: {
                         title: "人力资源档案管理",
-                        hidden: true
+                        hidden: true,
+                        roles: [Role.HR_SPECIALIST, Role.ADMIN] // 人力资源档案登记：人事专员、超级管理员
                     }
                 },
                 {
@@ -205,7 +225,8 @@ const router = new Router({
                     component: () => import("@/views/resources/review.vue"),
                     meta: {
                         title: "人力资源档案管理",
-                        hidden: true
+                        hidden: true,
+                        roles: [Role.HR_MANAGER, Role.ADMIN] // 人力资源档案登记复核：人事经理、超级管理员
                     }
                 },
                 {
@@ -213,7 +234,8 @@ const router = new Router({
                     component: () => import("@/views/resources/update.vue"),
                     meta: {
                         title: "人力资源档案管理",
-                        hidden: true
+                        hidden: true,
+                        roles: [Role.HR_SPECIALIST, Role.ADMIN] // 人力资源档案变更：人事专员、超级管理员
                     }
                 },
                 {
@@ -221,7 +243,8 @@ const router = new Router({
                     component: () => import("@/views/resources/delete.vue"),
                     meta: {
                         title: "人力资源档案管理",
-                        hidden: true
+                        hidden: true,
+                        roles: [Role.HR_MANAGER, Role.ADMIN] // 人力资源档案删除管理：人事经理、超级管理员
                     }
                 },
                 {
@@ -229,18 +252,20 @@ const router = new Router({
                     component: () => import("@/views/resources/detail.vue"),
                     meta: {
                         title: "人力资源档案管理",
-                        hidden: true
+                        hidden: true,
+                        roles: [Role.HR_SPECIALIST, Role.HR_MANAGER, Role.ADMIN] // 人力资源档案查询：人事专员、人事经理、超级管理员
                     }
                 },
-              {
-                path: "/position",
-                component: () => import("@/views/positions/index.vue"),
-                meta: {
-                    title: "职务档案管理",
-                    icon: "icon-employee",
-                    affix: true
+                {
+                    path: "/position",
+                    component: () => import("@/views/positions/index.vue"),
+                    meta: {
+                        title: "职务档案管理",
+                        icon: "icon-employee",
+                        affix: true,
+                        roles: [Role.HR_MANAGER, Role.ADMIN] // 职位设置：人事经理、超级管理员
+                    }
                 }
-              }
             ]
         },
         {

@@ -118,7 +118,7 @@
         </el-table-column>
         <el-table-column
           prop="createdAt"
-          label="登记时间"
+          label="提交时间"
           width="180">
         </el-table-column>
         <el-table-column
@@ -204,6 +204,7 @@
               </template>
             </el-table-column>
             <el-table-column
+              v-if="role !== Role.HR_SPECIALIST"
               label="操作"
               width="200">
               <template slot-scope="scope">
@@ -225,11 +226,16 @@
 import { queryResourcePage, deleteResource, restoreResource } from '@/api/resource'
 import { getOrgList } from '@/api/organizations'
 import { getPositionList } from '@/api/positions'
-import { filterAdminEmployees } from '@/utils/permission'
+import {filterAdminEmployees, Role} from '@/utils/permission'
 import { UserModule } from '@/store/modules/user'
 import Cookies from 'js-cookie'
 
 export default {
+  computed: {
+    Role() {
+      return Role
+    }
+  },
   data() {
     return {
       org1Id: null,
@@ -245,7 +251,8 @@ export default {
       pageSize: 10,
       total: 0,
       records: [],
-      deletedRecords: [] // 已删除的档案
+      deletedRecords: [], // 已删除的档案
+      role: null,
     }
   },
 
@@ -253,9 +260,15 @@ export default {
     this.loadOrg1List()
     this.loadPositionList()
     this.pageQuery()
+    this.getUserRole()
+    console.log("log this.role:", this.role)
   },
 
   methods: {
+    getUserRole() {
+      this.role = Number(UserModule.role)
+    },
+
     // 加载一级机构列表
     async loadOrg1List() {
       try {
@@ -347,7 +360,7 @@ export default {
           let records = res.data.data.records
           // 过滤掉已删除的档案（双重保险）
           records = records.filter((record: any) => record.status !== '已删除')
-          
+
           // 获取当前用户角色，过滤超级管理员信息
           const userInfo = Cookies.get('user_info') ? JSON.parse(Cookies.get('user_info') as string) : {}
           let currentUserRole = UserModule.role
@@ -358,12 +371,12 @@ export default {
             currentUserRole = 0
           }
           currentUserRole = Number(currentUserRole)
-          
+
           // 非超级管理员用户看不到超级管理员的信息
           records = filterAdminEmployees(records, currentUserRole)
-          
+
           this.records = records
-          
+
           // 总数处理
           if (currentUserRole === 0) {
             this.total = res.data.data.total
@@ -394,7 +407,7 @@ export default {
       queryResourcePage(deletedParams).then((res: any) => {
         if (res.data.code == 200) {
           let deletedRecords = res.data.data.records || []
-          
+
           // 获取当前用户角色，过滤超级管理员信息
           const userInfo = Cookies.get('user_info') ? JSON.parse(Cookies.get('user_info') as string) : {}
           let currentUserRole = UserModule.role
@@ -405,10 +418,10 @@ export default {
             currentUserRole = 0
           }
           currentUserRole = Number(currentUserRole)
-          
+
           // 非超级管理员用户看不到超级管理员的信息
           deletedRecords = filterAdminEmployees(deletedRecords, currentUserRole)
-          
+
           this.deletedRecords = deletedRecords
         }
       }).catch((err: any) => {

@@ -76,7 +76,7 @@
                 class="action-button"
                 @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
               <el-button
-                v-if="scope.row.status === '待复核'"
+                v-if="scope.row.status === '待复核' && this.role !== Role.SALARY_SPECIALIST"
                 size="small" plain
                 type="success"
                 class="action-button"
@@ -106,8 +106,16 @@
 
 <script lang="ts">
 import { getSalaryStandardList } from '@/api/salaryStandards'
+import { UserModule} from "@/store/modules/user";
+import {Role} from "@/utils/permission";
+
 
 export default {
+  computed: {
+    Role() {
+      return Role
+    }
+  },
   data(){
     return {
       standardNumber: "",
@@ -116,13 +124,20 @@ export default {
       pageNum: 1,
       pageSize: 10,
       total: 0,
-      records: []
+      records: [],
+      role: null,
     }
   },
   created() {
     this.pageQuery();
+    this.getRole();
+    console.log("role:", this.role)
   },
   methods: {
+    getRole() {
+      this.role = UserModule.role;
+    },
+
     pageQuery() {
       const params: any = {
         standardNumber: this.standardNumber,

@@ -69,7 +69,7 @@ import { getSalaryItemsList, deleteSalaryItem } from "@/api/salaryItems";
           <!-- 先放置添加项目按钮 -->
           <el-button type="primary" style="color:#FFFFFF;" class="button1" @click="handleAddSalaryItem">+添加薪酬项目</el-button>
           <!-- 再放置返回按钮，这样返回按钮就在添加项目按钮的右侧 -->
-          <el-button @click="() => this.$router.push({ path: '/dashboard' })">返回</el-button>
+          <el-button @click="() => this.$router.push({ path: '/salaryStandards' })">返回</el-button>
         </div>
       </div>
       <!-- 表格容器，用于居中显示 -->

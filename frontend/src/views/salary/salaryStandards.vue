@@ -6,18 +6,19 @@
         <el-input v-model="standardNumber" placeholder="请输入标准编号" style="width: 15%"></el-input>
         <label style="margin-left: 20px; margin-right: 5px">标准名称：</label>
         <el-input v-model="standardName" placeholder="请输入标准名称" style="width: 15%"></el-input>
-        <label style="margin-left: 20px; margin-right: 5px">登记时间：</label>
-        <el-date-picker
-          v-model="dateRange"
-          type="daterange"
-          range-separator="至"
-          start-placeholder="开始日期"
-          end-placeholder="结束日期"
-          value-format="yyyy-MM-dd"
-          style="width: 240px">
-        </el-date-picker>
+<!--        <label style="margin-left: 20px; margin-right: 5px">登记时间：</label>-->
+<!--        <el-date-picker-->
+<!--          v-model="dateRange"-->
+<!--          type="daterange"-->
+<!--          range-separator="至"-->
+<!--          start-placeholder="开始日期"-->
+<!--          end-placeholder="结束日期"-->
+<!--          value-format="yyyy-MM-dd"-->
+<!--          style="width: 240px">-->
+<!--        </el-date-picker>-->
         <el-button type="primary" size="small" style="margin-left: 25px; color: #FFFFFF" @click="pageQuery()" class="button1">查询</el-button>
         <el-button type="primary" size="small" style="float: right; color:#FFFFFF;" class="button1" @click="handleAdd()">+添加薪酬标准</el-button>
+        <el-button type="primary" size="small" style="float: right; margin-right: 80px; color: #FFFFFF" @click="$router.push('/salaryItems')" class="button1">薪酬项目</el-button>
       </div>
 
       <div class="table-container">
@@ -76,7 +77,7 @@
                 class="action-button"
                 @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
               <el-button
-                v-if="scope.row.status === '待复核' && this.role !== Role.SALARY_SPECIALIST"
+                v-if="scope.row.status === '待复核' && role !== Role.SALARY_SPECIALIST "
                 size="small" plain
                 type="success"
                 class="action-button"
@@ -129,13 +130,14 @@ export default {
     }
   },
   created() {
+    this.getUserRole();
     this.pageQuery();
-    this.getRole();
     console.log("role:", this.role)
+    console.log("log this.role:", this.role)
   },
   methods: {
-    getRole() {
-      this.role = UserModule.role;
+    getUserRole() {
+      this.role = Number(UserModule.role)
     },
 
     pageQuery() {

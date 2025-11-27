@@ -27,7 +27,7 @@ CREATE TABLE `employee` (
   `archive_number` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '档案编号',
   `username` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '姓名',
   `password` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `role` tinyint(1) DEFAULT '0' COMMENT '1-管理员，0-普通成员',
+  `role` tinyint(1) DEFAULT '5' COMMENT '1-管理员，0-普通成员',
   `delete_msg` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '删除原因',
   `gender` enum('男','女') COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '性别',
   `email` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '电子邮箱',
@@ -71,7 +71,7 @@ CREATE TABLE `employee` (
   CONSTRAINT `employee_ibfk_1` FOREIGN KEY (`org_id`) REFERENCES `organizations` (`id`),
   CONSTRAINT `employee_ibfk_2` FOREIGN KEY (`position_id`) REFERENCES `positions` (`id`),
   CONSTRAINT `employee_ibfk_3` FOREIGN KEY (`salary_standard_id`) REFERENCES `salary_standards` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='档案编号';
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='档案编号';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -80,7 +80,7 @@ CREATE TABLE `employee` (
 
 LOCK TABLES `employee` WRITE;
 /*!40000 ALTER TABLE `employee` DISABLE KEYS */;
-INSERT INTO `employee` VALUES (1,'20250101010101','张三','e10adc3949ba59abbe56e057f20f883e',1,NULL,'男','zhangsan@company.com',NULL,NULL,'13800138000',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1,NULL,NULL,NULL,NULL,NULL,3,1,'中级','正常','admin','2025-10-31 01:45:22',NULL,NULL,'2025-11-21 04:10:58',NULL),(2,'20250101010102','李四','e10adc3949ba59abbe56e057f20f883e',2,NULL,'女','lisi@company.com',NULL,NULL,'13900139000',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,2,NULL,NULL,NULL,NULL,NULL,3,2,'初级','正常','admin','2025-10-31 01:45:22','admin','2025-11-05 09:38:19','2025-11-21 04:10:58',NULL),(3,'20250000000000','admin','e10adc3949ba59abbe56e057f20f883e',0,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1,1,'高级','正常','admin','2025-11-03 08:37:48',NULL,NULL,'2025-11-21 04:10:58',NULL),(4,'2025010101103','陈芳','e10adc3949ba59abbe56e057f20f883e',3,NULL,'女','','','','','','','','',NULL,'汉族','','','',10,'',NULL,'','','','','',3,7,'高级','正常','admin','2025-11-07 02:41:43','admin','2025-11-07 03:31:22','2025-11-21 04:10:58',NULL),(9,'202501010201','李思','e10adc3949ba59abbe56e057f20f883e',4,NULL,'女','','','','','','','中国','','1995-06-06','汉族','','群众',NULL,30,'',1,'','','','','',4,9,'中级','正常','admin','2025-11-12 01:10:00','admin','2025-11-12 01:28:04','2025-11-21 04:10:58',NULL),(10,'2025010101104','陈思思','e10adc3949ba59abbe56e057f20f883e',1,NULL,'女','','','','','','','中国','',NULL,'','','',NULL,0,'硕士',NULL,'','','','','',3,7,'中级','正常','admin','2025-11-12 02:39:59','admin','2025-11-12 02:40:11','2025-11-21 04:10:58',NULL),(11,'202501010202','黄橙橙','e10adc3949ba59abbe56e057f20f883e',2,'员工离职','女','','','','','','','中国','',NULL,'','','',NULL,0,'',1,'','','','','',4,9,'中级','正常','admin','2025-11-12 02:47:50','admin','2025-11-12 02:53:21','2025-11-21 04:10:58','2025-11-12 03:30:57'),(12,'202501020301','陈房','e10adc3949ba59abbe56e057f20f883e',3,'员工离职','男','','','','','','','中国','',NULL,'','','',NULL,0,'',1,'','','','','',10,8,'高级','已删除','admin','2025-11-12 03:03:31','admin','2025-11-12 03:03:37','2025-11-21 04:10:58','2025-11-21 03:04:58');
+INSERT INTO `employee` VALUES (3,'20250000000000','admin','e10adc3949ba59abbe56e057f20f883e',0,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1,1,'高级','正常','admin','2025-11-03 08:37:48',NULL,NULL,'2025-11-21 04:10:58',NULL),(4,'202501010101','王经理','e10adc3949ba59abbe56e057f20f883e',1,'员工离职','男','','','','','','','中国','',NULL,'','','',NULL,0,'',NULL,'','','','','',3,11,'高级','正常','admin','2025-11-25 05:05:09','admin','2025-11-25 05:05:33','2025-11-25 05:08:39','2025-11-26 09:03:22'),(5,'202501020101','蔡经理','e10adc3949ba59abbe56e057f20f883e',2,NULL,'男','','','','','','','中国','',NULL,'','','',NULL,0,'',NULL,'','','','','',13,12,'高级','正常','admin','2025-11-25 05:06:20','admin','2025-11-25 05:06:31','2025-11-25 05:08:39',NULL),(6,'202501010102','黄经理','e10adc3949ba59abbe56e057f20f883e',3,NULL,'男','','','','','','','中国','',NULL,'','','',NULL,0,'',NULL,'','','','','',3,11,'高级','正常','admin','2025-11-25 05:07:18','admin','2025-11-25 05:07:59','2025-11-25 05:08:39',NULL),(7,'202501020102','陈经理','e10adc3949ba59abbe56e057f20f883e',4,'离职','男','','','','','','','中国','',NULL,'','','',NULL,0,'',NULL,'','','','','',13,11,'高级','正常','admin','2025-11-25 05:07:52','admin','2025-11-25 05:08:03','2025-11-25 05:08:39','2025-11-26 09:33:04');
 /*!40000 ALTER TABLE `employee` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -103,7 +103,7 @@ CREATE TABLE `organizations` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `org_code` (`org_code`),
   KEY `idx_organizations_parent_id` (`parent_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -112,7 +112,7 @@ CREATE TABLE `organizations` (
 
 LOCK TABLES `organizations` WRITE;
 /*!40000 ALTER TABLE `organizations` DISABLE KEYS */;
-INSERT INTO `organizations` VALUES (1,'01','总部',1,NULL,'2025-10-31 01:45:22','2025-10-31 01:45:22',0),(2,'0101','技术部',2,1,'2025-10-31 01:45:22','2025-10-31 01:45:22',0),(3,'010101','开发一组',3,2,'2025-10-31 01:45:22','2025-10-31 01:45:22',0),(4,'010102','开发二组',3,2,'2025-10-31 01:45:22','2025-10-31 01:45:22',0),(5,'0102','销售部',2,1,'2025-10-31 01:45:22','2025-10-31 15:43:27',0),(6,'010201','销售一部',3,5,'2025-10-31 01:45:22','2025-10-31 15:42:30',0),(8,'010202','销售二部',3,5,'2025-10-31 14:39:37','2025-10-31 15:42:30',0),(10,'010203','销售三部',3,5,'2025-10-31 14:41:28','2025-10-31 15:42:30',0),(11,'010103','开发三组',3,2,'2025-10-31 14:44:05','2025-10-31 14:44:05',0);
+INSERT INTO `organizations` VALUES (1,'01','总部',1,NULL,'2025-10-31 01:45:22','2025-10-31 01:45:22',0),(2,'0101','技术部',2,1,'2025-10-31 01:45:22','2025-10-31 01:45:22',0),(3,'010101','开发一组',3,2,'2025-10-31 01:45:22','2025-10-31 01:45:22',0),(12,'0102','销售部',2,1,'2025-11-25 03:59:31','2025-11-25 03:59:31',0),(13,'010201','销售一组',3,12,'2025-11-25 04:00:05','2025-11-25 04:00:05',0);
 /*!40000 ALTER TABLE `organizations` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -133,7 +133,7 @@ CREATE TABLE `positions` (
   `is_deleted` int(11) DEFAULT '0' COMMENT '0-未删除，1-删除',
   PRIMARY KEY (`id`),
   KEY `org_id` (`org_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -142,7 +142,7 @@ CREATE TABLE `positions` (
 
 LOCK TABLES `positions` WRITE;
 /*!40000 ALTER TABLE `positions` DISABLE KEYS */;
-INSERT INTO `positions` VALUES (1,'Java开发工程师',3,'负责Java后端开发','2025-10-31 01:45:22','2025-10-31 01:45:22',0),(2,'前端开发工程师',3,'负责前端页面开发','2025-10-31 01:45:22','2025-10-31 01:45:22',0),(3,'项目经理',4,'负责项目管理工作','2025-10-31 01:45:22','2025-10-31 01:45:22',0),(4,'销售专员',6,'负责产品销售','2025-10-31 01:45:22','2025-10-31 01:45:22',0),(5,'Java开发工程师',3,'负责Java后端开发，同时运营','2025-10-31 06:53:29','2025-11-02 09:56:58',0),(6,'前端开发工程师',3,'负责前端页面开发','2025-10-31 06:53:29','2025-10-31 06:53:29',0),(7,'项目经理',4,'负责项目管理工作','2025-10-31 06:53:29','2025-10-31 06:53:29',0),(8,'销售专员',6,'负责产品销售','2025-10-31 06:53:29','2025-10-31 06:53:29',0),(9,'前端开发工程师',4,'负责项目的前端的渲染','2025-10-31 15:06:24','2025-11-02 09:57:16',0);
+INSERT INTO `positions` VALUES (1,'Java后端工程师',3,'负责后端工程','2025-10-31 01:45:22','2025-11-25 04:03:06',0),(10,'前端工程师',3,'负责前端页面渲染','2025-11-25 04:00:41','2025-11-25 04:00:41',0),(11,'项目经理',3,'统筹整个项目','2025-11-25 04:02:50','2025-11-25 04:02:50',0),(12,'销售经理',13,'负责整个销售业务','2025-11-25 04:03:46','2025-11-25 04:03:46',0);
 /*!40000 ALTER TABLE `positions` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -167,7 +167,7 @@ CREATE TABLE `salary_issue_details` (
   KEY `issue_id` (`issue_id`),
   KEY `employee_id` (`employee_id`),
   KEY `salary_standard_id` (`salary_standard_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1966518274 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1698070532 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -176,7 +176,6 @@ CREATE TABLE `salary_issue_details` (
 
 LOCK TABLES `salary_issue_details` WRITE;
 /*!40000 ALTER TABLE `salary_issue_details` DISABLE KEYS */;
-INSERT INTO `salary_issue_details` VALUES (-1615372286,-1615372287,4,1,0.00,0.00,15000.00,'2025-11-12 01:51:06','2025-11-12 01:51:06'),(-1615372285,-1615372287,1,1,0.00,0.00,15000.00,'2025-11-12 01:51:06','2025-11-12 01:51:06'),(-646504446,-667475967,9,1,0.00,0.00,15000.00,'2025-11-12 02:38:38','2025-11-12 02:38:38'),(-138993663,1,1,1,1000.00,500.00,15500.00,'2025-11-05 09:36:18','2025-11-05 09:36:18'),(-138993662,1,2,2,501.00,300.00,201.00,'2025-11-05 09:36:18','2025-11-05 09:36:18'),(-138993661,1,1,1,1000.00,500.00,15500.00,'2025-11-05 09:36:18','2025-11-05 09:36:18'),(-138993660,1,2,2,500.00,300.00,10200.00,'2025-11-05 09:36:18','2025-11-05 09:36:18'),(171401217,133652482,9,1,0.00,200.00,14800.00,'2025-11-12 01:40:44','2025-11-12 01:40:44'),(234315778,133652482,4,1,0.00,200.00,14800.00,'2025-11-12 01:40:44','2025-11-12 01:40:44'),(418865154,351756290,4,1,0.00,0.00,15000.00,'2025-11-12 02:05:15','2025-11-12 02:05:15'),(1966518273,1953935361,9,1,0.00,0.00,15000.00,'2025-11-12 02:17:22','2025-11-12 02:17:22');
 /*!40000 ALTER TABLE `salary_issue_details` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -204,7 +203,7 @@ CREATE TABLE `salary_issues` (
   UNIQUE KEY `issue_number` (`issue_number`),
   KEY `idx_salary_issues_org_id` (`org_id`),
   KEY `idx_salary_issues_status` (`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=1953935362 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1630961667 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -213,7 +212,6 @@ CREATE TABLE `salary_issues` (
 
 LOCK TABLES `salary_issues` WRITE;
 /*!40000 ALTER TABLE `salary_issues` DISABLE KEYS */;
-INSERT INTO `salary_issues` VALUES (-1615372287,'ISS202511002',3,'2025-11-12',2,30000.00,NULL,'已复核','admin','2025-11-12 01:51:06','admin','2025-11-12 01:51:12'),(-667475967,'ISS202511005',4,'2025-11-12',1,15000.00,'不行','已复核','admin','2025-11-12 02:38:38','admin','2025-11-12 02:38:51'),(1,'ISSUE202501001',3,'2025-01-15',4,41401.00,NULL,'已发放','薪酬专员','2025-10-31 01:45:22','admin','2025-11-07 01:32:02'),(133652482,'ISS202511001',3,'2025-11-12',2,29600.00,NULL,'已发放','admin','2025-11-12 01:40:44','admin','2025-11-12 01:41:19'),(351756290,'ISS202511003',3,'2025-11-12',1,15000.00,NULL,'已复核','admin','2025-11-12 02:05:15','admin','2025-11-12 02:13:04'),(1953935361,'ISS202511004',4,'2025-11-12',1,15000.00,'','不通过','admin','2025-11-12 02:17:22','admin','2025-11-12 02:33:24');
 /*!40000 ALTER TABLE `salary_issues` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -235,7 +233,7 @@ CREATE TABLE `salary_items` (
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -244,7 +242,7 @@ CREATE TABLE `salary_items` (
 
 LOCK TABLES `salary_items` WRITE;
 /*!40000 ALTER TABLE `salary_items` DISABLE KEYS */;
-INSERT INTO `salary_items` VALUES (1,'S001','基本工资','收入',NULL,1,0,'2025-10-31 01:45:22','2025-11-03 05:30:00'),(2,'S002','交通补助','收入',NULL,1,0,'2025-10-31 01:45:22','2025-11-03 05:30:18'),(3,'S003','午餐补助','收入',NULL,1,0,'2025-10-31 01:45:22','2025-10-31 16:24:35'),(4,'S004','通信补助','收入',NULL,1,0,'2025-10-31 01:45:22','2025-10-31 16:24:35'),(5,'S005','养老保险','扣除','基本工资 * 8%',1,0,'2025-10-31 01:45:22','2025-10-31 16:24:35'),(6,'S006','医疗保险','扣除','基本工资 * 2% + 3',1,0,'2025-10-31 01:45:22','2025-10-31 16:24:35'),(7,'S007','失业保险','扣除','基本工资 * 0.5%',1,0,'2025-10-31 01:45:22','2025-10-31 16:24:35'),(8,'S008','住房公积金','扣除','基本工资 * 8%',1,0,'2025-10-31 01:45:22','2025-10-31 16:24:35'),(17,'S009','晚餐补助','收入','',1,0,'2025-10-31 16:32:39','2025-10-31 16:32:39');
+INSERT INTO `salary_items` VALUES (1,'S001','基本工资','收入',NULL,1,0,'2025-10-31 01:45:22','2025-11-03 05:30:00'),(2,'S002','交通补助','收入',NULL,1,0,'2025-10-31 01:45:22','2025-11-03 05:30:18'),(3,'S003','午餐补助','收入',NULL,1,0,'2025-10-31 01:45:22','2025-10-31 16:24:35'),(4,'S004','通信补助','收入',NULL,1,0,'2025-10-31 01:45:22','2025-10-31 16:24:35'),(5,'S005','养老保险','扣除','基本工资 * 8%',1,0,'2025-10-31 01:45:22','2025-10-31 16:24:35'),(6,'S006','医疗保险','扣除','基本工资 * 2% + 3',1,0,'2025-10-31 01:45:22','2025-10-31 16:24:35'),(7,'S007','失业保险','扣除','基本工资 * 0.5%',1,0,'2025-10-31 01:45:22','2025-10-31 16:24:35'),(8,'S008','住房公积金','扣除','基本工资 * 8%',1,0,'2025-10-31 01:45:22','2025-10-31 16:24:35');
 /*!40000 ALTER TABLE `salary_items` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -264,7 +262,7 @@ CREATE TABLE `salary_standard_details` (
   PRIMARY KEY (`id`),
   KEY `standard_id` (`standard_id`),
   KEY `salary_item_id` (`salary_item_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=649551874 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=976650248 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -273,7 +271,6 @@ CREATE TABLE `salary_standard_details` (
 
 LOCK TABLES `salary_standard_details` WRITE;
 /*!40000 ALTER TABLE `salary_standard_details` DISABLE KEYS */;
-INSERT INTO `salary_standard_details` VALUES (1,1,1,12000.00,'2025-10-31 01:45:22'),(2,1,2,500.00,'2025-10-31 01:45:22'),(3,1,3,300.00,'2025-10-31 01:45:22'),(4,1,4,200.00,'2025-10-31 01:45:22'),(5,2,1,8000.00,'2025-10-31 01:45:22'),(6,2,2,300.00,'2025-10-31 01:45:22'),(7,2,3,200.00,'2025-10-31 01:45:22'),(8,2,4,100.00,'2025-10-31 01:45:22'),(9,1,1,12000.00,'2025-10-31 06:53:29'),(10,1,2,500.00,'2025-10-31 06:53:29'),(11,1,3,300.00,'2025-10-31 06:53:29'),(12,1,4,200.00,'2025-10-31 06:53:29'),(13,2,1,8000.00,'2025-10-31 06:53:29'),(14,2,2,300.00,'2025-10-31 06:53:29'),(15,2,3,200.00,'2025-10-31 06:53:29'),(16,2,4,100.00,'2025-10-31 06:53:29'),(12046337,-931672062,1,15000.00,'2025-11-12 00:32:59'),(12046338,-931672062,2,200.00,'2025-11-12 00:32:59'),(12046339,-931672062,3,20.00,'2025-11-12 00:32:59'),(12046340,-931672062,17,20.00,'2025-11-12 00:32:59'),(12046341,-931672062,8,2000.00,'2025-11-12 00:32:59'),(582443010,582443009,1,3000.00,'2025-11-12 01:50:42'),(649551873,582443009,8,200.00,'2025-11-12 01:50:42');
 /*!40000 ALTER TABLE `salary_standard_details` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -296,11 +293,12 @@ CREATE TABLE `salary_standards` (
   `reviewed_by` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '复核人',
   `reviewed_at` timestamp NULL DEFAULT NULL,
   `review_opinion` text COLLATE utf8mb4_unicode_ci COMMENT '复核意见',
+  `position_id` int(11) DEFAULT NULL COMMENT '适用职位ID',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `standard_number` (`standard_number`)
-) ENGINE=InnoDB AUTO_INCREMENT=582443010 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=662085634 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -309,7 +307,6 @@ CREATE TABLE `salary_standards` (
 
 LOCK TABLES `salary_standards` WRITE;
 /*!40000 ALTER TABLE `salary_standards` DISABLE KEYS */;
-INSERT INTO `salary_standards` VALUES (-931672062,'SAL202511001','高级开发工程师薪酬标准','张管理员','admin','2025-11-11 16:00:00',17240.00,'待复核',NULL,NULL,NULL,'2025-11-12 00:31:55','2025-11-12 00:32:59'),(1,'SAL2025001','中级开发工程师标准','王经理','李专员','2025-10-31 01:45:22',15000.00,'已生效',NULL,NULL,NULL,'2025-10-31 01:45:22','2025-10-31 01:45:22'),(2,'SAL2025002','初级开发工程师标准','王经理','李专员','2025-10-31 01:45:22',10000.00,'待复核',NULL,NULL,NULL,'2025-10-31 01:45:22','2025-10-31 01:45:22'),(582443009,'SAL202511002','销售部工资','张三','admin','2025-11-11 16:00:00',3200.00,'待复核',NULL,NULL,NULL,'2025-11-12 01:50:42','2025-11-12 01:50:42');
 /*!40000 ALTER TABLE `salary_standards` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -322,4 +319,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-11-22 16:07:11
+-- Dump completed on 2025-11-27 13:06:53

@@ -1,6 +1,7 @@
 <script lang="ts">
 import { addSalaryStandard, getSalaryStandardById, updateSalaryStandard, generateSalaryStandardNumber } from '@/api/salaryStandards'
 import { getSalaryItemsList } from '@/api/salaryItems'
+import { getPositionList } from '@/api/positions'
 import Cookies from 'js-cookie'
 
 export default {
@@ -11,6 +12,7 @@ export default {
         standardNumber: '',
         standardName: '',
         creator: '',
+        positionId: null,
         details: []
       },
       rules: {
@@ -19,14 +21,26 @@ export default {
         ],
         standardName: [
           { required: true, message: '请输入标准名称', trigger: 'blur' }
+        ],
+        positionId: [
+          { required: true, message: '请选择适用职位', trigger: 'change' }
         ]
       },
       salaryItems: [],
-      totalAmount: 0
+      positionList: [],
+      totalAmount: 0,
+      // 三险一金的计算规则
+      insuranceCalculationRules: {
+        '养老保险': { formula: '基本工资 * 8%', calculate: (baseSalary: number) => baseSalary * 0.08 },
+        '医疗保险': { formula: '基本工资 * 2% + 3', calculate: (baseSalary: number) => baseSalary * 0.02 + 3 },
+        '失业保险': { formula: '基本工资 * 0.5%', calculate: (baseSalary: number) => baseSalary * 0.005 },
+        '住房公积金': { formula: '基本工资 * 8%', calculate: (baseSalary: number) => baseSalary * 0.08 }
+      }
     }
   },
   created() {
     this.loadSalaryItems()
+    this.loadPositionList()
     this.optType = this.$route.query.id ? 'edit' : 'add'
     if (this.optType === 'add') {
       this.generateNumber()
@@ -74,6 +88,16 @@ export default {
         this.$message.error('获取薪酬项目列表失败')
       }
     },
+    async loadPositionList() {
+      try {
+        const res = await getPositionList({ pageNum: 1, pageSize: 1000 })
+        if (res.data.code == 200) {
+          this.positionList = res.data.data.records || []
+        }
+      } catch (error) {
+        this.$message.error('获取职位列表失败')
+      }
+    },
     async loadData() {
       const id = this.$route.query.id
       try {
@@ -103,7 +127,8 @@ export default {
       this.ruleForm.details.push({
         salaryItemId: null,
         amount: 0,
-        itemType: null // 存储项目类型
+        itemType: null, // 存储项目类型
+        calculationFormula: '' // 存储计算方式
       })
     },
     removeDetail(index: number) {
@@ -114,7 +139,82 @@ export default {
       const item = this.salaryItems.find((item: any) => item.id === salaryItemId)
       return item ? item.itemType : null
     },
+    // 获取薪酬项目名称
+    getItemName(salaryItemId: number) {
+      const item = this.salaryItems.find((item: any) => item.id === salaryItemId)
+      return item ? item.itemName : null
+    },
+    // 检查是否是三险一金项目
+    isInsuranceItem(itemName: string) {
+      return itemName && this.insuranceCalculationRules.hasOwnProperty(itemName)
+    },
+    // 获取基本工资金额
+    getBaseSalary() {
+      const baseSalaryItem = this.ruleForm.details.find((detail: any) => {
+        const itemName = this.getItemName(detail.salaryItemId)
+        return itemName === '基本工资'
+      })
+      return baseSalaryItem ? parseFloat(baseSalaryItem.amount) || 0 : 0
+    },
+    // 计算三险一金金额
+    calculateInsuranceAmount(itemName: string) {
+      const baseSalary = this.getBaseSalary()
+      if (baseSalary <= 0) {
+        return 0
+      }
+      const rule = this.insuranceCalculationRules[itemName]
+      if (rule) {
+        return rule.calculate(baseSalary)
+      }
+      return 0
+    },
+    // 获取计算方式公式
+    getCalculationFormula(itemName: string) {
+      const rule = this.insuranceCalculationRules[itemName]
+      return rule ? rule.formula : ''
+    },
+    // 处理薪酬项目选择变化
+    handleItemChange(detail: any) {
+      detail.itemType = this.getItemType(detail.salaryItemId)
+      const itemName = this.getItemName(detail.salaryItemId)
+      
+      // 如果是三险一金项目，自动计算金额
+      if (this.isInsuranceItem(itemName)) {
+        const calculatedAmount = this.calculateInsuranceAmount(itemName)
+        detail.amount = parseFloat(calculatedAmount.toFixed(2))
+        detail.calculationFormula = this.getCalculationFormula(itemName)
+      } else {
+        detail.calculationFormula = ''
+      }
+      
+      this.calculateTotal()
+    },
+    // 处理金额变化
+    handleAmountChange(detail: any) {
+      const itemName = this.getItemName(detail.salaryItemId)
+      
+      // 如果修改的是基本工资，需要重新计算所有三险一金
+      if (itemName === '基本工资') {
+        this.calculateTotal()
+      } else if (!this.isInsuranceItem(itemName)) {
+        // 如果不是三险一金项目，正常计算总额
+        this.calculateTotal()
+      }
+      // 如果是三险一金项目，金额是禁用的，不会触发这个函数
+    },
     calculateTotal() {
+      // 重新计算所有三险一金项目的金额
+      this.ruleForm.details.forEach((detail: any) => {
+        if (detail.salaryItemId) {
+          const itemName = this.getItemName(detail.salaryItemId)
+          if (this.isInsuranceItem(itemName)) {
+            const calculatedAmount = this.calculateInsuranceAmount(itemName)
+            detail.amount = parseFloat(calculatedAmount.toFixed(2))
+            detail.calculationFormula = this.getCalculationFormula(itemName)
+          }
+        }
+      })
+      
       this.totalAmount = this.ruleForm.details.reduce((sum: number, detail: any) => {
         if (!detail.salaryItemId) {
           return sum
@@ -138,7 +238,7 @@ export default {
             this.$message.warning('请至少添加一个薪酬项目明细')
             return
           }
-          
+
           const params = {
             ...this.ruleForm,
             details: this.ruleForm.details.map((detail: any) => ({
@@ -192,17 +292,27 @@ export default {
         <el-form-item label="制定人" prop="creator">
           <el-input v-model="ruleForm.creator" disabled placeholder="当前登录用户"></el-input>
         </el-form-item>
-        
+        <el-form-item label="适用职位" prop="positionId">
+          <el-select v-model="ruleForm.positionId" placeholder="请选择职位" clearable>
+            <el-option
+              v-for="item in positionList"
+              :key="item.id"
+              :label="item.positionName"
+              :value="item.id">
+            </el-option>
+          </el-select>
+        </el-form-item>
+
         <el-divider>薪酬项目明细</el-divider>
-        
+
         <el-form-item label=" ">
           <el-button type="primary" size="small" @click="addDetail">+ 添加薪酬项目</el-button>
         </el-form-item>
-        
+
         <el-table :data="ruleForm.details" border style="width: 100%">
           <el-table-column label="薪酬项目" width="200">
             <template slot-scope="scope">
-              <el-select v-model="scope.row.salaryItemId" placeholder="请选择薪酬项目" @change="() => { scope.row.itemType = getItemType(scope.row.salaryItemId); calculateTotal(); }">
+              <el-select v-model="scope.row.salaryItemId" placeholder="请选择薪酬项目" @change="handleItemChange(scope.row)">
                 <el-option
                   v-for="item in salaryItems"
                   :key="item.id"
@@ -220,14 +330,21 @@ export default {
               <span v-else>-</span>
             </template>
           </el-table-column>
-          <el-table-column label="金额" width="150">
+          <el-table-column label="金额" width="200">
             <template slot-scope="scope">
-              <el-input-number 
-                v-model="scope.row.amount" 
-                :precision="2" 
-                :min="0"
-                @change="calculateTotal"
-                style="width: 100%"></el-input-number>
+              <div>
+                <el-input-number
+                  v-model="scope.row.amount"
+                  :precision="2"
+                  :min="0"
+                  :disabled="scope.row.salaryItemId && isInsuranceItem(getItemName(scope.row.salaryItemId))"
+                  @change="handleAmountChange(scope.row)"
+                  style="width: 100%"></el-input-number>
+                <div v-if="scope.row.salaryItemId && isInsuranceItem(getItemName(scope.row.salaryItemId))" 
+                     style="font-size: 12px; color: #909399; margin-top: 5px;">
+                  计算方式：{{ getCalculationFormula(getItemName(scope.row.salaryItemId)) }}
+                </div>
+              </div>
             </template>
           </el-table-column>
           <el-table-column label="操作" width="100">
@@ -236,13 +353,13 @@ export default {
             </template>
           </el-table-column>
         </el-table>
-        
+
         <el-form-item label="薪酬总额">
           <span style="font-size: 18px; color: #409EFF; font-weight: bold">
             ¥{{ totalAmount.toFixed(2) }}
           </span>
         </el-form-item>
-        
+
         <el-form-item>
           <el-button
             v-if="optType == 'add'"

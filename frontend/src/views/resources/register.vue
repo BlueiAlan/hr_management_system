@@ -98,7 +98,7 @@
                 </el-select>
               </el-form-item>
             </el-col>
-            <el-col :span="8">
+<!--            <el-col :span="8">
               <el-form-item label="薪酬标准" prop="salaryStandardId">
                 <el-select v-model="ruleForm.salaryStandardId" placeholder="选择薪酬标准" clearable style="width: 100%;">
                   <el-option
@@ -109,7 +109,8 @@
                   </el-option>
                 </el-select>
               </el-form-item>
-            </el-col>
+            </el-col>-->
+
           </el-row>
         </div>
 

@@ -25,7 +25,7 @@ import lombok.experimental.Accessors;
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @TableName("salary_standards")
-@ApiModel(value="SalaryStandards对象", description="")
+@ApiModel(value = "SalaryStandards对象", description = "")
 public class SalaryStandards implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -61,9 +61,11 @@ public class SalaryStandards implements Serializable {
     @ApiModelProperty(value = "复核意见")
     private String reviewOpinion;
 
+    @ApiModelProperty(value = "适用职位ID")
+    private Integer positionId;
+
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
-
 
 }

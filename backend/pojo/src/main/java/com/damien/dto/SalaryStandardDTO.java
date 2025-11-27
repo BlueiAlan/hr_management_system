@@ -17,14 +17,6 @@ public class SalaryStandardDTO implements Serializable {
     private String status;
     private String reviewedBy;
     private String reviewOpinion;
+    private Integer positionId;
     private List<SalaryStandardDetailDTO> details;
 }
-
-
-
-
-
-
-
-
-

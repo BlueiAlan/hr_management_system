@@ -21,10 +21,8 @@ public class SalaryStandardVO implements Serializable {
     private String reviewedBy;
     private LocalDateTime reviewedAt;
     private String reviewOpinion;
+    private Integer positionId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<SalaryStandardDetailVO> details;
 }
-
-
-

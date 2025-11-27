@@ -1,11 +1,10 @@
 <script lang="ts">
 import { addSalaryStandard, getSalaryStandardById, updateSalaryStandard, generateSalaryStandardNumber } from '@/api/salaryStandards'
 import { getSalaryItemsList } from '@/api/salaryItems'
+import { getPositionList } from '@/api/positions'
 import Cookies from 'js-cookie'
-import {Role} from "@/utils/permission";
 
 export default {
-
   data() {
     return {
       optType: '',
@@ -13,6 +12,7 @@ export default {
         standardNumber: '',
         standardName: '',
         creator: '',
+        positionId: null,
         details: []
       },
       rules: {
@@ -21,14 +21,26 @@ export default {
         ],
         standardName: [
           { required: true, message: '请输入标准名称', trigger: 'blur' }
+        ],
+        positionId: [
+          { required: true, message: '请选择适用职位', trigger: 'change' }
         ]
       },
       salaryItems: [],
-      totalAmount: 0
+      positionList: [],
+      totalAmount: 0,
+      // 三险一金的计算规则
+      insuranceCalculationRules: {
+        '养老保险': { formula: '基本工资 * 8%', calculate: (baseSalary: number) => baseSalary * 0.08 },
+        '医疗保险': { formula: '基本工资 * 2% + 3', calculate: (baseSalary: number) => baseSalary * 0.02 + 3 },
+        '失业保险': { formula: '基本工资 * 0.5%', calculate: (baseSalary: number) => baseSalary * 0.005 },
+        '住房公积金': { formula: '基本工资 * 8%', calculate: (baseSalary: number) => baseSalary * 0.08 }
+      }
     }
   },
   created() {
     this.loadSalaryItems()
+    this.loadPositionList()
     this.optType = this.$route.query.id ? 'edit' : 'add'
     if (this.optType === 'add') {
       this.generateNumber()
@@ -76,6 +88,16 @@ export default {
         this.$message.error('获取薪酬项目列表失败')
       }
     },
+    async loadPositionList() {
+      try {
+        const res = await getPositionList({ pageNum: 1, pageSize: 1000 })
+        if (res.data.code == 200) {
+          this.positionList = res.data.data.records || []
+        }
+      } catch (error) {
+        this.$message.error('获取职位列表失败')
+      }
+    },
     async loadData() {
       const id = this.$route.query.id
       try {
@@ -105,25 +127,11 @@ export default {
       this.ruleForm.details.push({
         salaryItemId: null,
         amount: 0,
-        itemType: null // 存储项目类型
+        itemType: null, // 存储项目类型
+        calculationFormula: '' // 存储计算方式
       })
     },
     removeDetail(index: number) {
-      const detail = this.ruleForm.details[index]
-      // 如果删除的是基本工资，更新所有三险一金项目的金额为0
-      if (detail && detail.salaryItemId) {
-        const item = this.salaryItems.find((item: any) => item.id === detail.salaryItemId)
-        if (item && this.isBasicSalaryItem(item.itemName)) {
-          // 删除基本工资时，将所有三险一金项目的金额设为0
-          const insuranceItemNames = ['养老保险', '医疗保险', '失业保险', '住房公积金']
-          insuranceItemNames.forEach(name => {
-            const insuranceDetail = this.findDetailByItemName(name)
-            if (insuranceDetail) {
-              insuranceDetail.amount = 0
-            }
-          })
-        }
-      }
       this.ruleForm.details.splice(index, 1)
       this.calculateTotal()
     },
@@ -131,96 +139,82 @@ export default {
       const item = this.salaryItems.find((item: any) => item.id === salaryItemId)
       return item ? item.itemType : null
     },
-    // 根据项目名称查找项目ID
-    findItemIdByName(itemName: string) {
-      const item = this.salaryItems.find((item: any) => item.itemName === itemName)
-      return item ? item.id : null
+    // 获取薪酬项目名称
+    getItemName(salaryItemId: number) {
+      const item = this.salaryItems.find((item: any) => item.id === salaryItemId)
+      return item ? item.itemName : null
     },
-    // 根据项目名称查找项目
-    findItemByName(itemName: string) {
-      return this.salaryItems.find((item: any) => item.itemName === itemName)
-    },
-    // 检查某个项目是否已经在details中
-    findDetailByItemName(itemName: string) {
-      const itemId = this.findItemIdByName(itemName)
-      if (!itemId) return null
-      return this.ruleForm.details.find((detail: any) => detail.salaryItemId === itemId)
-    },
-    // 自动计算三险一金
-    calculateInsuranceAndHousing(basicSalary: number) {
-      if (!basicSalary || basicSalary <= 0) {
-        return {
-          pension: 0,        // 养老保险
-          medical: 0,        // 医疗保险
-          unemployment: 0,  // 失业保险
-          housing: 0        // 住房公积金
-        }
-      }
-
-      return {
-        pension: parseFloat((basicSalary * 0.08).toFixed(2)),           // 养老保险 = 基本工资 * 8%
-        medical: parseFloat((basicSalary * 0.02 + 3).toFixed(2)),       // 医疗保险 = 基本工资 * 2% + 3元
-        unemployment: parseFloat((basicSalary * 0.005).toFixed(2)),      // 失业保险 = 基本工资 * 0.5%
-        housing: parseFloat((basicSalary * 0.08).toFixed(2))            // 住房公积金 = 基本工资 * 8%
-      }
-    },
-    // 判断是否是三险一金项目
+    // 检查是否是三险一金项目
     isInsuranceItem(itemName: string) {
-      const insuranceItems = ['养老保险', '医疗保险', '失业保险', '住房公积金']
-      return insuranceItems.includes(itemName)
-    },
-    // 判断是否是基本工资项目
-    isBasicSalaryItem(itemName: string) {
-      return itemName === '基本工资'
+      return itemName && this.insuranceCalculationRules.hasOwnProperty(itemName)
     },
     // 获取基本工资金额
-    getBasicSalaryAmount() {
-      const basicSalaryDetail = this.findDetailByItemName('基本工资')
-      if (basicSalaryDetail) {
-        return parseFloat(basicSalaryDetail.amount) || 0
+    getBaseSalary() {
+      const baseSalaryItem = this.ruleForm.details.find((detail: any) => {
+        const itemName = this.getItemName(detail.salaryItemId)
+        return itemName === '基本工资'
+      })
+      return baseSalaryItem ? parseFloat(baseSalaryItem.amount) || 0 : 0
+    },
+    // 计算三险一金金额
+    calculateInsuranceAmount(itemName: string) {
+      const baseSalary = this.getBaseSalary()
+      if (baseSalary <= 0) {
+        return 0
+      }
+      const rule = this.insuranceCalculationRules[itemName]
+      if (rule) {
+        return rule.calculate(baseSalary)
       }
       return 0
     },
-    // 根据项目名称获取计算方式文本
+    // 获取计算方式公式
     getCalculationFormula(itemName: string) {
-      const basicSalary = this.getBasicSalaryAmount()
-      if (basicSalary <= 0) {
-        return '请先输入基本工资'
-      }
-      
-      const formulas: any = {
-        '养老保险': '基本工资 * 8%',
-        '医疗保险': '基本工资 * 2% + 3元',
-        '失业保险': '基本工资 * 0.5%',
-        '住房公积金': '基本工资 * 8%'
-      }
-      
-      return formulas[itemName] || ''
+      const rule = this.insuranceCalculationRules[itemName]
+      return rule ? rule.formula : ''
     },
-    // 当基本工资变化时，更新所有已选择的三险一金项目
-    updateInsuranceItems() {
-      const basicSalary = this.getBasicSalaryAmount()
-      const insurance = this.calculateInsuranceAndHousing(basicSalary)
+    // 处理薪酬项目选择变化
+    handleItemChange(detail: any) {
+      detail.itemType = this.getItemType(detail.salaryItemId)
+      const itemName = this.getItemName(detail.salaryItemId)
       
-      // 定义三险一金项目名称映射
-      const insuranceItems = [
-        { name: '养老保险', amount: insurance.pension },
-        { name: '医疗保险', amount: insurance.medical },
-        { name: '失业保险', amount: insurance.unemployment },
-        { name: '住房公积金', amount: insurance.housing }
-      ]
-      
-      // 更新已选择的三险一金项目金额
-      insuranceItems.forEach(({ name, amount }) => {
-        const detail = this.findDetailByItemName(name)
-        if (detail) {
-          detail.amount = amount
-        }
-      })
+      // 如果是三险一金项目，自动计算金额
+      if (this.isInsuranceItem(itemName)) {
+        const calculatedAmount = this.calculateInsuranceAmount(itemName)
+        detail.amount = parseFloat(calculatedAmount.toFixed(2))
+        detail.calculationFormula = this.getCalculationFormula(itemName)
+      } else {
+        detail.calculationFormula = ''
+      }
       
       this.calculateTotal()
     },
+    // 处理金额变化
+    handleAmountChange(detail: any) {
+      const itemName = this.getItemName(detail.salaryItemId)
+      
+      // 如果修改的是基本工资，需要重新计算所有三险一金
+      if (itemName === '基本工资') {
+        this.calculateTotal()
+      } else if (!this.isInsuranceItem(itemName)) {
+        // 如果不是三险一金项目，正常计算总额
+        this.calculateTotal()
+      }
+      // 如果是三险一金项目，金额是禁用的，不会触发这个函数
+    },
     calculateTotal() {
+      // 重新计算所有三险一金项目的金额
+      this.ruleForm.details.forEach((detail: any) => {
+        if (detail.salaryItemId) {
+          const itemName = this.getItemName(detail.salaryItemId)
+          if (this.isInsuranceItem(itemName)) {
+            const calculatedAmount = this.calculateInsuranceAmount(itemName)
+            detail.amount = parseFloat(calculatedAmount.toFixed(2))
+            detail.calculationFormula = this.getCalculationFormula(itemName)
+          }
+        }
+      })
+      
       this.totalAmount = this.ruleForm.details.reduce((sum: number, detail: any) => {
         if (!detail.salaryItemId) {
           return sum
@@ -280,49 +274,6 @@ export default {
       this.$refs[formName].resetFields()
       this.ruleForm.details = []
       this.totalAmount = 0
-    },
-    // 处理薪酬项目选择变化
-    handleItemChange(detail: any, index: number) {
-      detail.itemType = this.getItemType(detail.salaryItemId)
-      const item = this.salaryItems.find((item: any) => item.id === detail.salaryItemId)
-      
-      if (item) {
-        // 如果选择的是三险一金项目，根据基本工资自动计算
-        if (this.isInsuranceItem(item.itemName)) {
-          const basicSalary = this.getBasicSalaryAmount()
-          if (basicSalary > 0) {
-            const insurance = this.calculateInsuranceAndHousing(basicSalary)
-            const amountMap: any = {
-              '养老保险': insurance.pension,
-              '医疗保险': insurance.medical,
-              '失业保险': insurance.unemployment,
-              '住房公积金': insurance.housing
-            }
-            detail.amount = amountMap[item.itemName] || 0
-          } else {
-            detail.amount = 0
-            this.$message.warning('请先输入基本工资')
-          }
-        }
-      }
-      
-      this.calculateTotal()
-    },
-    // 处理金额变化
-    handleAmountChange(detail: any, index: number) {
-      const item = this.salaryItems.find((item: any) => item.id === detail.salaryItemId)
-      
-      // 如果是基本工资变化，更新所有已选择的三险一金项目
-      if (item && this.isBasicSalaryItem(item.itemName)) {
-        this.updateInsuranceItems()
-      } else {
-        this.calculateTotal()
-      }
-    },
-    // 获取项目名称
-    getItemName(salaryItemId: number) {
-      const item = this.salaryItems.find((item: any) => item.id === salaryItemId)
-      return item ? item.itemName : ''
     }
   }
 }
@@ -341,6 +292,16 @@ export default {
         <el-form-item label="制定人" prop="creator">
           <el-input v-model="ruleForm.creator" disabled placeholder="当前登录用户"></el-input>
         </el-form-item>
+        <el-form-item label="适用职位" prop="positionId">
+          <el-select v-model="ruleForm.positionId" placeholder="请选择职位" clearable>
+            <el-option
+              v-for="item in positionList"
+              :key="item.id"
+              :label="item.positionName"
+              :value="item.id">
+            </el-option>
+          </el-select>
+        </el-form-item>
 
         <el-divider>薪酬项目明细</el-divider>
 
@@ -351,7 +312,7 @@ export default {
         <el-table :data="ruleForm.details" border style="width: 100%">
           <el-table-column label="薪酬项目" width="200">
             <template slot-scope="scope">
-              <el-select v-model="scope.row.salaryItemId" placeholder="请选择薪酬项目" @change="handleItemChange(scope.row, scope.$index)">
+              <el-select v-model="scope.row.salaryItemId" placeholder="请选择薪酬项目" @change="handleItemChange(scope.row)">
                 <el-option
                   v-for="item in salaryItems"
                   :key="item.id"
@@ -376,10 +337,11 @@ export default {
                   v-model="scope.row.amount"
                   :precision="2"
                   :min="0"
-                  :disabled="isInsuranceItem(getItemName(scope.row.salaryItemId))"
-                  @change="handleAmountChange(scope.row, scope.$index)"
+                  :disabled="scope.row.salaryItemId && isInsuranceItem(getItemName(scope.row.salaryItemId))"
+                  @change="handleAmountChange(scope.row)"
                   style="width: 100%"></el-input-number>
-                <div v-if="isInsuranceItem(getItemName(scope.row.salaryItemId))" style="margin-top: 5px; font-size: 12px; color: #909399;">
+                <div v-if="scope.row.salaryItemId && isInsuranceItem(getItemName(scope.row.salaryItemId))" 
+                     style="font-size: 12px; color: #909399; margin-top: 5px;">
                   计算方式：{{ getCalculationFormula(getItemName(scope.row.salaryItemId)) }}
                 </div>
               </div>
